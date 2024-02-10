@@ -8,16 +8,16 @@ class SCMRegistry:
     driver_map = {}
 
     def _associate_driver(self, headers):
-        for header in headers:
-            if header in self.driver_map.keys():
-                return self.driver_map[header]
+        for identifier in self.driver_map:
+            if identifier in headers:
+                return self.driver_map[identifier]
 
     def get_pipelines(self, request):
-        driver = self._associate_driver(request.headers)
-        driver.validate_webhook(request)
-        user = driver.get_user(request)
-        repo = driver.get_repo(request)
-        branch = driver.get_branch(request)
+        driver = self._associate_driver(request.headers)(request)
+        driver.validate_webhook()
+        user = driver.get_user()
+        repo = driver.get_repo()
+        branch = driver.get_branch()
         pipelines = Repo.objects.filter(branch=branch)
         return pipelines
 
