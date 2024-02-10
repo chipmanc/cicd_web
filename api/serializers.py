@@ -60,6 +60,7 @@ class PipelineSerializer(WritableNestedModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    account = models.Account
     environments = serializers.PrimaryKeyRelatedField(queryset=models.Environment.objects.all(),
                                                       many=True,
                                                       required=False)

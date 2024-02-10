@@ -18,8 +18,8 @@ class AccountViewSetTest(APITestCase):
         self.c.force_login(self.user)
         response = self.c.get(reverse('api:account-list'), format='json')
         response.render()
-        self.assertIn({'name': 'user1'}, response.data)
-        self.assertEqual(len(response.data), 1)
+        self.assertIn({'name': 'user1'}, response.data['results'])
+        self.assertEqual(len(response.data['results']), 1)
 
     def test_anonymous_user_has_no_permissions(self):
         response = self.c.get(reverse('api:account-list'))
@@ -43,8 +43,8 @@ class ProjectViewSetTest(APITestCase):
         self.c.force_login(self.user)
         response = self.c.get(reverse('api:project-list', kwargs={'parent_lookup_account': 2}))
         response.render()
-        self.assertNotIn({"account": 1, "name": "default"}, response.data)
-        self.assertIn({"pk": 2, "name": "default", "environments": []}, response.data)
+        self.assertNotIn({"account": 1, "name": "default"}, response.data['results'])
+        self.assertIn({"pk": 2, "name": "default", "environments": []}, response.data['results'])
 
     def test_project_create(self):
         """

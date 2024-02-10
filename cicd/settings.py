@@ -21,6 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-&+%v%^lmfcb7v1vv&s**u9a5#84p87b#+_7k&c=@@to6(p(8ed'
+FIELD_ENCRYPTION_KEY = 'aaX-KV3TLzLTDuJLXdBzC8fU3UgFK0dpM3BQ_t136j0='
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -38,11 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
+    'scm',
     'rest_framework',
     'rest_framework_guardian',
     'guardian',
     'allauth',
     'allauth.account',
+    'encrypted_model_fields',
     'debug_toolbar'
 ]
 
@@ -56,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'api.middleware.InformationMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
@@ -135,6 +139,8 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework_guardian.filters.DjangoObjectPermissionsFilter'
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100,
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
     ],

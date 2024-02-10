@@ -3,7 +3,7 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter as DefaultRo
 from api import views
 
 router = DefaultRouter()
-base_router = router.register('account', views.AccountViewSet)
+base_router = router.register('account', views.AccountViewSet, basename='account')
 project_router = base_router.register('project',
                                       views.ProjectViewSet,
                                       basename='project',
