@@ -6,5 +6,5 @@ from scm import views
 app_name = 'scm'
 
 urlpatterns = [
-    path('', views.receive),
+    path('', views.receive_webhook),
 ]

@@ -3,16 +3,17 @@ from django.http import HttpResponse
 from rest_framework import viewsets
 
 from scm import models, serializers
-from scm.drivers import scm_registry
+from scm.drivers import SCMRegistry
 
 
 class GitRepoViewSet(viewsets.ModelViewSet):
-    queryset = models.GitRepo.objects.all()
+    queryset = models.Repo.objects.all()
     serializer_class = serializers.GitRepoSerializer
 
 
 @csrf_exempt
-def receive(request):
-    body = request.body
-    headers = request.headers
+def receive_webhook(request):
+    driver = SCMRegistry()
+    pipelines = driver.get_pipelines(request)
+    driver.trigger_pipeline(pipelines)
     return HttpResponse('')

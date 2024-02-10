@@ -11,11 +11,20 @@ def _sign_request(body, secret):
 
 
 class GithubDriver(SCMDriver):
-    def associate_pipelines(self, request):
-        pass
+    format = 'github'
+    identifier = 'X-GitHub-Delivery'
 
-    def trigger_pipeline_run(self, pipelines):
-        pass
+    def get_user(self, request=None):
+        if request:
+            return request.body['sender']['login']
+
+    def get_repo(self, request=None):
+        if request:
+            return request.body['repository']['full_name']
+
+    def get_branch(self, request=None):
+        if request:
+            return request.body['ref']
 
     def poll_repo(self, repo):
         pass

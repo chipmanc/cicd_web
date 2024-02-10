@@ -5,5 +5,5 @@ from scm import models
 
 class GitRepoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.GitRepo
+        model = models.Repo
         fields = '__all__'

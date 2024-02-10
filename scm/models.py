@@ -2,7 +2,7 @@ from django.db import models
 from encrypted_model_fields.fields import EncryptedCharField
 
 
-class GitRepo(models.Model):
+class Repo(models.Model):
     FETCH_TYPE = [
         ('poll', 'Poll for changes'),
         ('push', 'Use webhook to listen for changes')
