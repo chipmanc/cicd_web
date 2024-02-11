@@ -1,6 +1,5 @@
 import hashlib
 import hmac
-import json
 
 from scm.drivers import SCMDriver
 
@@ -15,9 +14,9 @@ class GithubDriver(SCMDriver):
     format = 'github'
     identifier = 'X-GitHub-Delivery'
 
-    def __init__(self, request=None):
-        if request:
-            self.request_body = json.loads(request.body)
+    def _get_event(self):
+        if self.request_headers:
+            return self.request_headers['X-GitHub-Event']
 
     def get_user(self):
         if self.request_body:
@@ -27,9 +26,13 @@ class GithubDriver(SCMDriver):
         if self.request_body:
             return self.request_body['repository']['full_name']
 
-    def get_branch(self, request=None):
+    def get_branch(self):
         if self.request_body:
-            return self.request_body['ref']
+            event = self._get_event()
+            if event == 'push':
+                return self.request_body['ref']
+            elif event == 'pull_request':
+                return self.request_body['pull_request']['base']['ref']
 
     def poll_repo(self, repo):
         pass

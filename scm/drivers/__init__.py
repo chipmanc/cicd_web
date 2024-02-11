@@ -1,4 +1,5 @@
 import abc
+import json
 import pkgutil
 
 from scm.models import Repo
@@ -34,29 +35,31 @@ class SCMDriver(abc.ABC):
         super().__init_subclass__(**kwargs)
         SCMRegistry.driver_map[cls.identifier] = cls
 
+    def __init__(self, request=None):
+        if request:
+            self.request_body = json.loads(request.body)
+            self.request_headers = request.headers
+
     @abc.abstractmethod
-    def get_user(self, request):
+    def get_user(self):
         """
-        Takes a webhook event and finds associated user
-        :param django.http.request.HttpRequest request:
+        Finds user associated with webhook event
         :return: str
         """
         pass
 
     @abc.abstractmethod
-    def get_repo(self, request):
+    def get_repo(self):
         """
-        Takes a webhook event and finds associated repo
-        :param django.http.request.HttpRequest request:
+        Finds repo associated with webhook event
         :return: str
         """
         pass
 
     @abc.abstractmethod
-    def get_branch(self, request):
+    def get_branch(self):
         """
-        Takes a webhook event and finds associated branch
-        :param django.http.request.HttpRequest request:
+        Finds branch associated with webhook event
         :return: str
         """
 
