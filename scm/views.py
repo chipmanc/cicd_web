@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets
 
 from scm import models, serializers
-from scm.drivers import SCMRegistry
+from scm.drivers import SCMManager
 
 
 class GitRepoViewSet(viewsets.ModelViewSet):
@@ -13,7 +13,7 @@ class GitRepoViewSet(viewsets.ModelViewSet):
 
 @csrf_exempt
 def receive_webhook(request):
-    driver = SCMRegistry()
+    driver = SCMManager()
     pipelines = driver.get_pipelines(request)
     driver.trigger_pipeline(pipelines, 'chri')
     return HttpResponse('')
