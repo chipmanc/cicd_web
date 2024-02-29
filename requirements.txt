@@ -80,3 +80,5 @@ validate-pyproject==0.13.post1.dev0+gb752273.d20230520
 vine==5.0.0
 wcwidth==0.2.6
 yt-dlp==2023.7.6
+
+celery~=5.3.6
