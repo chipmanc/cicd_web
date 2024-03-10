@@ -1,3 +1,3 @@
-from .celery import basic_tier, premium_tier, bespoke_tier
+from .celery import app
 
-__all__ = ("basic_tier", "premium_tier", "bespoke_tier")
+__all__ = ("app",)
