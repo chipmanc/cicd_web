@@ -26,6 +26,14 @@ class GithubDriver(SCMDriver):
         if self.request_body:
             return self.request_body['repository']['full_name']
 
+    def get_repo_clone_url(self):
+        if self.request_body:
+            return self.request_body['repository']['clone_url']
+
+    def get_repo_ssh_url(self):
+        if self.request_body:
+            return self.request_body['repository']['ssh_url']
+
     def get_branch(self):
         if self.request_body:
             event = self._get_event()
