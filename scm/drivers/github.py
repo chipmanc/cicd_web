@@ -33,6 +33,8 @@ class GithubDriver(SCMDriver):
                 return self.request_body['ref'].split('/')[-1]
             elif event.startswith('pull_request'):
                 return self.request_body['pull_request']['base']['ref']
+            else:
+                return self.request_body['repository']['default_branch']
 
     def poll_repo(self, repo):
         pass

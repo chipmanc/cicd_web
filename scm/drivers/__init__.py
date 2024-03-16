@@ -19,12 +19,22 @@ class SCMRegistry:
         user = driver.get_user()
         repo = driver.get_repo()
         branch = driver.get_branch()
+<<<<<<< Updated upstream
         pipelines = Repo.objects.filter(branch=branch)
+=======
+        # (^|,) Matches either start of string, or comma
+        # (,|$) Matches either end of string, or comma
+        # For comma separated list, match any component
+        #regex = r'(^|,){0}(,|$)'.format(branch)
+        #pipelines = Repo.objects.filter(branch__iregex=regex)
+        pipelines = Branch.objects.filter(name=branch)
+        pipelines = pipelines[0].repo.name
+
+>>>>>>> Stashed changes
         return pipelines
 
     def trigger_pipeline(self, pipelines, user):
         a = self.driver_map
-        print(pipelines)
 
 
 class SCMDriver(abc.ABC):

@@ -26,7 +26,7 @@ FIELD_ENCRYPTION_KEY = 'aaX-KV3TLzLTDuJLXdBzC8fU3UgFK0dpM3BQ_t136j0='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '174.138.62.64']
 INTERNAL_IPS = ['127.0.0.1']
 
 
