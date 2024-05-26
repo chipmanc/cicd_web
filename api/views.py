@@ -15,9 +15,10 @@ class AccountViewSet(viewsets.ModelViewSet):
 
 class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = serializers.ProjectSerializer
-    queryset = models.Project.objects.all()
-    basename = 'project'
     lookup_field = 'name'
+
+    def get_queryset(self):
+        return models.Project.objects.filter(account__name=self.kwargs['account'])
 
     def perform_create(self, serializer):
         account_name = self.kwargs['account']
@@ -36,12 +37,6 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         for group in agms:
             group.grp.delete()
         instance.delete()
-
-
-class RepoViewSet(viewsets.ModelViewSet):
-    queryset = models.Repo.objects.all()
-    serializer_class = serializers.RepoSerializer
-    lookup_field = 'name'
 
 
 class EnvironmentViewSet(AddPermission, NestedViewSetMixin, viewsets.ModelViewSet):

@@ -17,7 +17,7 @@ class AccountTestCase(TestCase):
 class EnvironmentTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.environment = baker.make(models.Environment, name='environment')
+        cls.environment = baker.make('Environment', name='environment')
 
     def test_env_str(self):
         self.assertEqual(str(self.environment), 'environment')

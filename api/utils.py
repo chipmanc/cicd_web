@@ -34,7 +34,9 @@ def add_project_perms(user, obj):
 
     for grp in ['admin', 'run']:
         g = Group.objects.create(name=str(uuid4()))
-        agm = models.AccountGroupMapping.objects.create(name=f'{project_name}-{grp}', grp=g, account=account)
+        agm = models.AccountGroupMapping.objects.create(name=f'{account.name}-{project_name}-{grp}',
+                                                        grp=g,
+                                                        account=account)
         user.groups.add(agm.grp)
 
         if grp == 'admin':
@@ -53,9 +55,9 @@ def add_perms(obj):
     account = obj.project.account
     project_name = obj.project.name
     obj_type = type(obj).__name__.lower()
-    adm_group = models.AccountGroupMapping.objects.get(name=f'{project_name}-admin', account=account)
+    adm_group = models.AccountGroupMapping.objects.get(name=f'{account.name}-{project_name}-admin', account=account)
     for perm in ['view', 'change', 'delete']:
         assign_perm(f'api.{perm}_{obj_type}', adm_group.grp, obj)
 
-    run_group = models.AccountGroupMapping.objects.get(name=f'{project_name}-run', account=account)
+    run_group = models.AccountGroupMapping.objects.get(name=f'{account.name}-{project_name}-run', account=account)
     assign_perm(f'api.view_{obj_type}', run_group.grp, obj)
