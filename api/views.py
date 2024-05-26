@@ -10,16 +10,18 @@ from .utils import add_project_perms
 class AccountViewSet(viewsets.ModelViewSet):
     queryset = models.Account.objects.all()
     serializer_class = serializers.AccountSerializer
+    lookup_field = 'name'
 
 
 class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = serializers.ProjectSerializer
     queryset = models.Project.objects.all()
     basename = 'project'
+    lookup_field = 'name'
 
     def perform_create(self, serializer):
-        account_pk = self.kwargs['parent_lookup_account']
-        account = models.Account.objects.get(pk=account_pk)
+        account_name = self.kwargs['account']
+        account = models.Account.objects.get(name=account_name)
         # Could have a validate_account method for serializer, but would then need to overwrite create()
         # which does more stuff, right now serializer class is clean, and we're doing stuff here anyway.
         if not self.request.user.has_perm('api.change_account', account):
@@ -38,8 +40,10 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class EnvironmentViewSet(AddPermission, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = models.Environment.objects.all()
     serializer_class = serializers.EnvironmentSerializer
+    lookup_field = 'name'
 
 
 class PipelineViewSet(AddPermission, NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = models.Pipeline.objects.all()
     serializer_class = serializers.PipelineSerializer
+    lookup_field = 'name'

@@ -15,5 +15,5 @@ class GitRepoViewSet(viewsets.ModelViewSet):
 def receive_webhook(request):
     driver = SCMRegistry()
     pipelines = driver.get_pipelines(request)
-    driver.trigger_pipeline(pipelines, 'chri')
+    #driver.trigger_pipeline(pipelines, 'chri')
     return HttpResponse('')

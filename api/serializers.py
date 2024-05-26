@@ -2,13 +2,16 @@ from rest_framework import serializers
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 
 from api import models
+from pprint import pprint
 
 
-class PrimaryKeyRelatedFieldByProject(serializers.PrimaryKeyRelatedField):
+class SlugFieldByProject(serializers.SlugRelatedField):
     def get_queryset(self):
         query_set = super().get_queryset()
         request = self.context.get('request')
-        project = request.parser_context['kwargs']['parent_lookup_project']
+        account = request.parser_context['kwargs']['account']
+        project = request.parser_context['kwargs']['project']
+        project = models.Project.objects.get(account__name=account, name=project)
         return query_set.filter(project=project)
 
 
@@ -29,7 +32,7 @@ class EnvironmentSerializer(WritableNestedModelSerializer):
 
     class Meta:
         model = models.Environment
-        fields = ('pk', 'name', 'env_vars')
+        fields = ('name', 'env_vars')
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -49,14 +52,16 @@ class StageSerializer(WritableNestedModelSerializer):
 
 class PipelineSerializer(WritableNestedModelSerializer):
     stages = StageSerializer(required=False, many=True)
-    environments = PrimaryKeyRelatedFieldByProject(queryset=models.Environment.objects.all(),
-                                                   many=True,
-                                                   required=False)
+    #environments = PrimaryKeyRelatedFieldByProject(queryset=models.Environment.objects.all(),
+    #                                                  many=True,
+    #                                                  required=False)
+    environments = SlugFieldByProject(queryset=models.Environment.objects.all(),many=True, slug_field="name")
+
 
     class Meta:
         model = models.Pipeline
         depth = 2
-        fields = ('pk', 'name', 'stages', 'environments')
+        fields = ('name', 'stages', 'environments')
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -67,4 +72,4 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Project
-        fields = ('pk', 'name', 'environments')
+        fields = ('name', 'environments', 'pipelines')

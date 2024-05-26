@@ -20,13 +20,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&+%v%^lmfcb7v1vv&s**u9a5#84p87b#+_7k&c=@@to6(p(8ed'
+#SECRET_KEY = 'django-insecure-&+%v%^lmfcb7v1vv&s**u9a5#84p87b#+_7k&c=@@to6(p(8ed'
+SECRET_KEY = '(?[cE|dSX*&iZSV.dN;Tk_Irs1le8u?:)U5^VMHiJ@n</ilAJ|'
 FIELD_ENCRYPTION_KEY = 'aaX-KV3TLzLTDuJLXdBzC8fU3UgFK0dpM3BQ_t136j0='
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+APPEND_SLASH = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', 'curlicommand.com']
 INTERNAL_IPS = ['127.0.0.1']
 
 
@@ -46,6 +52,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'encrypted_model_fields',
+    'drf_spectacular',
+    'django_reverse_admin',
     'debug_toolbar'
 ]
 
@@ -59,7 +67,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'api.middleware.InformationMiddleware',
+    #'api.middleware.InformationMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
@@ -125,6 +133,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = '/srv/static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -154,7 +163,16 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'TEST_REQUEST_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Curli CommanD API',
+    'DESCRIPTION': 'Curli Command API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': True,
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+LOGIN_REDIRECT_URL = '/api/schema/swagger-ui/'
