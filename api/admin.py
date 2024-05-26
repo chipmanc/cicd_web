@@ -21,9 +21,14 @@ class PipelineAdmin(GuardedModelAdmin):
     pass
 
 
+class RepoAdmin(GuardedModelAdmin):
+    pass
+
+
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Account, AccountAdmin)
 admin.site.register(models.Project, ProjectAdmin)
 admin.site.register(models.Environment, EnvironmentAdmin)
 admin.site.register(models.Pipeline, PipelineAdmin)
 admin.site.register(models.AccountGroupMapping)
+admin.site.register(models.Repo, RepoAdmin)

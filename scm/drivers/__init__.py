@@ -2,8 +2,6 @@ import abc
 import json
 import pkgutil
 
-from scm.models import Repo
-
 
 class SCMManager:
     driver_map = {}
@@ -23,8 +21,8 @@ class SCMManager:
         # (,|$) Matches either end of string, or comma
         # For comma separated list, match any component
         regex = r'(^|,){0}(,|$)'.format(branch)
-        pipelines = Repo.objects.filter(branch__iregex=regex)
-        return pipelines
+        # pipelines = Repo.objects.filter(branch__iregex=regex)
+        # return pipelines
 
     def trigger_pipeline(self, pipelines, user):
         a = self.driver_map
