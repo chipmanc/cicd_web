@@ -2,10 +2,8 @@ import abc
 import json
 import pkgutil
 
-from scm.models import Repo
 
-
-class SCMRegistry:
+class SCMManager:
     driver_map = {}
 
     def _associate_driver(self, headers):
@@ -19,8 +17,12 @@ class SCMRegistry:
         user = driver.get_user()
         repo = driver.get_repo()
         branch = driver.get_branch()
-        pipelines = Repo.objects.filter(branch=branch)
-        return pipelines
+        # (^|,) Matches either start of string, or comma
+        # (,|$) Matches either end of string, or comma
+        # For comma separated list, match any component
+        regex = r'(^|,){0}(,|$)'.format(branch)
+        # pipelines = Repo.objects.filter(branch__iregex=regex)
+        # return pipelines
 
     def trigger_pipeline(self, pipelines, user):
         a = self.driver_map
@@ -33,7 +35,7 @@ class SCMDriver(abc.ABC):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        SCMRegistry.driver_map[cls.identifier] = cls
+        SCMManager.driver_map[cls.identifier] = cls
 
     def __init__(self, request=None):
         if request:

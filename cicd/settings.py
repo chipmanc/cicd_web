@@ -32,7 +32,8 @@ CSRF_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', 'curlicommand.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'curlicommand.com']
+
 INTERNAL_IPS = ['127.0.0.1']
 
 

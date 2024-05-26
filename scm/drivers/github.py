@@ -26,12 +26,20 @@ class GithubDriver(SCMDriver):
         if self.request_body:
             return self.request_body['repository']['full_name']
 
+    def get_repo_clone_url(self):
+        if self.request_body:
+            return self.request_body['repository']['clone_url']
+
+    def get_repo_ssh_url(self):
+        if self.request_body:
+            return self.request_body['repository']['ssh_url']
+
     def get_branch(self):
         if self.request_body:
             event = self._get_event()
             if event == 'push':
-                return self.request_body['ref']
-            elif event == 'pull_request':
+                return self.request_body['ref'].split('/')[-1]
+            elif event.startswith('pull_request'):
                 return self.request_body['pull_request']['base']['ref']
 
     def poll_repo(self, repo):

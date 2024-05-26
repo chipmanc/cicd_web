@@ -22,6 +22,7 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         account_name = self.kwargs['account']
         account = models.Account.objects.get(name=account_name)
+
         # Could have a validate_account method for serializer, but would then need to overwrite create()
         # which does more stuff, right now serializer class is clean, and we're doing stuff here anyway.
         if not self.request.user.has_perm('api.change_account', account):
@@ -35,6 +36,12 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         for group in agms:
             group.grp.delete()
         instance.delete()
+
+
+class RepoViewSet(viewsets.ModelViewSet):
+    queryset = models.Repo.objects.all()
+    serializer_class = serializers.RepoSerializer
+    lookup_field = 'name'
 
 
 class EnvironmentViewSet(AddPermission, NestedViewSetMixin, viewsets.ModelViewSet):

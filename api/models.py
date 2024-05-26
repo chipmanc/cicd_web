@@ -8,7 +8,7 @@ from .utils import add_project_perms, initialize_account
 
 class Account(models.Model):
     payment = models.CharField(max_length=20, blank=True)
-    name = models.CharField(max_length=255)
+    name = models.SlugField(primary_key=True)
     default = models.BooleanField(default=False)
 
     def __str__(self):
@@ -31,7 +31,7 @@ class AccountGroupMapping(models.Model):
 
 
 class Project(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.SlugField()
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='projects', editable=False)
 
     def __str__(self):
@@ -45,8 +45,22 @@ class Project(models.Model):
         ]
 
 
+class Repo(models.Model):
+    FETCH_TYPE = [
+        ('poll', 'Poll for changes'),
+        ('push', 'Use webhook to listen for changes')
+    ]
+    branch = models.CharField(max_length=255, default='master', blank=True)
+    fetch = models.CharField(max_length=4, choices=FETCH_TYPE, default='poll')
+    shallow_clone = models.BooleanField(default=False)
+    url = models.URLField()
+    user = models.CharField(max_length=50)
+    webhook_secret = models.CharField(max_length=255, null=True, blank=True)
+    project = models.ManyToManyField(Project)
+
+
 class Environment(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.SlugField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='environments')
 
     def __str__(self):
@@ -57,7 +71,7 @@ class Environment(models.Model):
 
 
 class EnvVar(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.SlugField()
     value = models.CharField(max_length=255)
     environment = models.ForeignKey(Environment, on_delete=models.CASCADE, related_name='env_vars')
 
@@ -69,7 +83,7 @@ class EnvVar(models.Model):
 
 
 class Pipeline(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.SlugField()
     environments = models.ManyToManyField(Environment)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='pipelines')
 
@@ -81,7 +95,7 @@ class Pipeline(models.Model):
 
 
 class Stage(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.SlugField()
     pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE, related_name='stages')
     manual_trigger = models.BooleanField(default=False)
 
@@ -90,7 +104,7 @@ class Stage(models.Model):
 
 
 class Job(models.Model):
-    name = models.CharField(max_length=255)
+    name = (models.SlugField())
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE, related_name='jobs')
 
     def __str__(self):
