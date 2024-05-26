@@ -94,7 +94,7 @@ class EnvironmentViewSetTest(APITestCase):
         self.c = APIClient()
         self.c.force_login(self.user)
         self.c.post(reverse('api:environment-list',
-                            kwargs={'account': 'user1', 'project': 'default'}),
+                             kwargs={'account': 'user1', 'project': 'default'}),
                     {"name": "env1"}, headers={"content-type": "application/json"})
 
     def test_user_can_view_environment(self):
@@ -126,7 +126,7 @@ class PipelineViewSetTest(APITestCase):
         self.stage = {"name": "stage1", "jobs": [{"name": "job1"}, {"name": "job2"}]}
         self.c.force_login(self.user)
         self.c.post(reverse('api:pipeline-list',
-                            kwargs={'account': "user1", 'project': 'default'}),
+                             kwargs={'account': "user1", 'project': 'default'}),
                     {"name": "pipeline1", "stages": [self.stage]}, headers={"content-type": "application/json"})
 
     def test_user_can_create_pipeline(self):
@@ -149,3 +149,8 @@ class PipelineViewSetTest(APITestCase):
                                                  'project': 'default',
                                                  'pk': 1}))
         self.assertEqual(response.status_code, 204)
+
+
+class RunPipelineTest(APITestCase):
+
+    pass

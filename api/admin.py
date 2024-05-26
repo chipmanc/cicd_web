@@ -23,21 +23,6 @@ class PipelineAdmin(GuardedModelAdmin):
     pass
 
 
-#class GroupInline(admin.StackedInline):
-#    model = Group
-#    fk_name = 'accountgroupmapping'
-#    filter_horizontal = ['permissions']
-
-
-#class AGM(admin.ModelAdmin):
-#    inlines = [GroupInline]
-#    list_display = ('name', 'account')
-#    fieldsets = (
-#        (None, {
-#            'fields': ('account', 'name', 'grp')
-#        }),
-#    )
-
 class AGM(ReverseModelAdmin):
     list_display = ['name', 'account']
     inline_type = 'stacked'

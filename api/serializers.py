@@ -52,11 +52,7 @@ class StageSerializer(WritableNestedModelSerializer):
 
 class PipelineSerializer(WritableNestedModelSerializer):
     stages = StageSerializer(required=False, many=True)
-    #environments = PrimaryKeyRelatedFieldByProject(queryset=models.Environment.objects.all(),
-    #                                                  many=True,
-    #                                                  required=False)
-    environments = SlugFieldByProject(queryset=models.Environment.objects.all(),many=True, slug_field="name")
-
+    environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
 
     class Meta:
         model = models.Pipeline
@@ -66,9 +62,9 @@ class PipelineSerializer(WritableNestedModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     account = models.Account
-    environments = serializers.PrimaryKeyRelatedField(queryset=models.Environment.objects.all(),
-                                                      many=True,
-                                                      required=False)
+    environments = SlugFieldByProject(queryset=models.Environment.objects.all(),
+                                      many=True,
+                                      required=False)
 
     class Meta:
         model = models.Project
