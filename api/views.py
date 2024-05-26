@@ -20,8 +20,9 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     lookup_field = 'name'
 
     def perform_create(self, serializer):
-        account_pk = self.kwargs['account']
-        account = models.Account.objects.get(pk=account_pk)
+        account_name = self.kwargs['account']
+        account = models.Account.objects.get(name=account_name)
+
         # Could have a validate_account method for serializer, but would then need to overwrite create()
         # which does more stuff, right now serializer class is clean, and we're doing stuff here anyway.
         if not self.request.user.has_perm('api.change_account', account):

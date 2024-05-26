@@ -94,7 +94,7 @@ class EnvironmentViewSetTest(APITestCase):
         self.c = APIClient()
         self.c.force_login(self.user)
         self.c.post(reverse('api:environment-list',
-                            kwargs={'project__account': 1, 'project': 1}),
+                             kwargs={'account': 'user1', 'project': 'default'}),
                     {"name": "env1"}, headers={"content-type": "application/json"})
 
     def test_user_can_view_environment(self):
@@ -102,8 +102,8 @@ class EnvironmentViewSetTest(APITestCase):
         Test that an authorized user can view an environment in his account.
         """
         response = self.c.get(reverse('api:environment-detail',
-                                      kwargs={'project__account': 1,
-                                              'project': 1,
+                                      kwargs={'account': "user1",
+                                              'project': 'default',
                                               'pk': 1}))
         self.assertEqual({"pk": 1, "name": "env1", "env_vars": []}, response.data)
         self.assertEqual(response.status_code, 200)
@@ -113,8 +113,8 @@ class EnvironmentViewSetTest(APITestCase):
         Test that an authorized user can delete an environment in his account
         """
         response = self.c.delete(reverse('api:environment-detail',
-                                         kwargs={'project__account': 1,
-                                                 'project': 1,
+                                         kwargs={'account': "user1",
+                                                 'project': 'default',
                                                  'pk': 1}))
         self.assertEqual(response.status_code, 204)
 
@@ -126,7 +126,7 @@ class PipelineViewSetTest(APITestCase):
         self.stage = {"name": "stage1", "jobs": [{"name": "job1"}, {"name": "job2"}]}
         self.c.force_login(self.user)
         self.c.post(reverse('api:pipeline-list',
-                            kwargs={'project__account': 1, 'project': 1}),
+                             kwargs={'account': "user1", 'project': 'default'}),
                     {"name": "pipeline1", "stages": [self.stage]}, headers={"content-type": "application/json"})
 
     def test_user_can_create_pipeline(self):
@@ -134,8 +134,8 @@ class PipelineViewSetTest(APITestCase):
         Test that an authorized user can view a pipeline in his account.
         """
         response = self.c.get(reverse('api:pipeline-detail',
-                                      kwargs={'project__account': 1,
-                                              'project': 1,
+                                      kwargs={'account': "user1",
+                                              'project': 'default',
                                               'pk': 1}))
         self.assertEqual({"pk": 1, "name": "pipeline1", "stages": [self.stage], "environments": []}, response.data)
         self.assertEqual(response.status_code, 200)
@@ -145,8 +145,8 @@ class PipelineViewSetTest(APITestCase):
         Test that an authorized user can delete a pipeline in his account.
         """
         response = self.c.delete(reverse('api:pipeline-detail',
-                                         kwargs={'project__account': 1,
-                                                 'project': 1,
+                                         kwargs={'account': "user1",
+                                                 'project': 'default',
                                                  'pk': 1}))
         self.assertEqual(response.status_code, 204)
 

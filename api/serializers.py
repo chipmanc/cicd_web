@@ -2,6 +2,7 @@ from rest_framework import serializers
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 
 from api import models
+from pprint import pprint
 
 
 class SlugFieldByProject(serializers.SlugRelatedField):
@@ -51,9 +52,7 @@ class StageSerializer(WritableNestedModelSerializer):
 
 class PipelineSerializer(WritableNestedModelSerializer):
     stages = StageSerializer(required=False, many=True)
-    environments = serializers.StringRelatedField(queryset=models.Environment.objects.all(),
-                                                  many=True,
-                                                  slug_field='name')
+    environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
 
     class Meta:
         model = models.Pipeline
@@ -69,14 +68,4 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Project
-        fields = ('name', 'environments')
-
-
-class RepoSerializer(serializers.ModelSerializer):
-    project = serializers.PrimaryKeyRelatedField(queryset=models.Project.objects.all(),
-                                                 many=True,
-                                                 required=True)
-
-    class Meta:
-        model = models.Repo
-        fields = '__all__'
+        fields = ('name', 'environments', 'pipelines')
