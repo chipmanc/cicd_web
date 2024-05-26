@@ -42,7 +42,6 @@ class AGM(ReverseModelAdmin):
     list_display = ['name', 'account']
     inline_type = 'stacked'
     inline_reverse = [('grp', {'filter_horizontal': ['permissions'], 'fields': ['permissions']})]
-    filter_horizontal = ['permissions',]
 
 
 admin.site.unregister(Group)
