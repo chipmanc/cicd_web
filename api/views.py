@@ -52,7 +52,6 @@ class EnvironmentViewSet(AddPermission, viewsets.ModelViewSet):
         project_name = self.kwargs['project']
         qs = models.Environment.objects.filter(project__account__name=account_name,
                                                project__name=project_name)
-        print(qs)
         if self.request.user.has_perm('api.view_project',
                                       models.Project.objects.get(account__name=account_name,
                                                                  name=project_name)):
