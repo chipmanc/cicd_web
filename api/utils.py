@@ -58,6 +58,7 @@ def add_perms(obj):
     adm_group = models.AccountGroupMapping.objects.get(name=f'{account.name}-{project_name}-admin', account=account)
     for perm in ['view', 'change', 'delete']:
         assign_perm(f'api.{perm}_{obj_type}', adm_group.grp, obj)
+        print(f'api.{perm}_{obj_type}')
 
     run_group = models.AccountGroupMapping.objects.get(name=f'{account.name}-{project_name}-run', account=account)
     assign_perm(f'api.view_{obj_type}', run_group.grp, obj)

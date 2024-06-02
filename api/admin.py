@@ -12,7 +12,7 @@ class AccountAdmin(GuardedModelAdmin):
 
 
 class ProjectAdmin(GuardedModelAdmin):
-    pass
+    list_display = ['name', 'account']
 
 
 class EnvironmentAdmin(GuardedModelAdmin):

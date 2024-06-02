@@ -28,6 +28,7 @@ class EnvVarSerializer(serializers.ModelSerializer):
 
 class EnvironmentSerializer(WritableNestedModelSerializer):
     env_vars = EnvVarSerializer(required=False, many=True)
+    project = models.Project
 
     class Meta:
         model = models.Environment
@@ -40,7 +41,7 @@ class JobSerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 
-class StageSerializer(WritableNestedModelSerializer):
+class StageSerializer(serializers.ModelSerializer):
     jobs = JobSerializer(required=False, many=True)
 
     class Meta:
@@ -49,7 +50,7 @@ class StageSerializer(WritableNestedModelSerializer):
         fields = ('name', 'jobs')
 
 
-class PipelineSerializer(WritableNestedModelSerializer):
+class PipelineSerializer(serializers.ModelSerializer):
     stages = StageSerializer(required=False, many=True)
     environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
 

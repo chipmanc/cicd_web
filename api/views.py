@@ -1,10 +1,9 @@
 from django.http import Http404
 from rest_framework import viewsets
-from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from api import models, serializers
 from .mixins import AddPermission
-from .utils import add_project_perms
+from .utils import add_perms, add_project_perms
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -13,12 +12,16 @@ class AccountViewSet(viewsets.ModelViewSet):
     lookup_field = 'name'
 
 
-class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ProjectSerializer
     lookup_field = 'name'
 
     def get_queryset(self):
-        return models.Project.objects.filter(account__name=self.kwargs['account'])
+        qs = models.Project.objects.filter(account__name=self.kwargs['account'])
+        if self.request.user.has_perm('api.view_account', models.Account.objects.get(name=self.kwargs['account'])):
+            return qs
+        else:
+            raise Http404("Account not found")
 
     def perform_create(self, serializer):
         account_name = self.kwargs['account']
@@ -39,13 +42,34 @@ class ProjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         instance.delete()
 
 
-class EnvironmentViewSet(AddPermission, NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = models.Environment.objects.all()
+class EnvironmentViewSet(AddPermission, viewsets.ModelViewSet):
     serializer_class = serializers.EnvironmentSerializer
     lookup_field = 'name'
 
+    def get_queryset(self):
+        qs = models.Environment.objects.filter(project__account__name=self.kwargs['account'],
+                                               project__name=self.kwargs['project'])
+        if self.request.user.has_perm('api.view_project',
+                                      models.Project.objects.get(account__name=self.kwargs['account'],
+                                                                 name=self.kwargs['project'])):
+            return qs
+        else:
+            raise Http404("Account not found")
 
-class PipelineViewSet(AddPermission, NestedViewSetMixin, viewsets.ModelViewSet):
+    def perform_create(self, serializer):
+        project_name = self.kwargs['project']
+        project = models.Project.objects.get(account__name=self.kwargs['account'], name=project_name)
+
+        # Could have a validate_account method for serializer, but would then need to overwrite create()
+        # which does more stuff, right now serializer class is clean, and we're doing stuff here anyway.
+        if not self.request.user.has_perm('api.change_project', project):
+            raise Http404("Project not found")
+        obj = serializer.save(project=project)
+        # Serializer is already saved, but calling this will do the post-processing permissions
+        add_perms(obj)
+
+
+class PipelineViewSet(AddPermission, viewsets.ModelViewSet):
     queryset = models.Pipeline.objects.all()
     serializer_class = serializers.PipelineSerializer
     lookup_field = 'name'
