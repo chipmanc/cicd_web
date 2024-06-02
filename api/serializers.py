@@ -20,23 +20,50 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 
-class EnvVarSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.EnvVar
-        fields = ('name', 'value')
+class EnvVarDictField(serializers.Field):
+    def to_representation(self, value):
+        # Convert the queryset of EnvVar instances to a dictionary
+        env_vars = {}
+        for env_var in value.all():
+            env_vars[env_var.name] = env_var.value
+        return env_vars
+
+    def to_internal_value(self, data):
+        # Convert the dictionary back to a queryset of EnvVar instances
+        if not isinstance(data, dict):
+            raise serializers.ValidationError('This field should be a dictionary.')
+
+        env_vars = []
+        for key, value in data.items():
+            env_var, created = models.EnvVar.objects.get_or_create(name=key, defaults={'value': value})
+            if not created and env_var.value != value:
+                env_var.value = value
+                env_var.save()
+            env_vars.append(env_var)
+        return env_vars
 
 
 class EnvironmentSerializer(serializers.ModelSerializer):
-    # env_vars = EnvVarSerializer(required=False)
-    env_vars = serializers.DictField(child=serializers.CharField(), required=False, allow_empty=True)
+    env_vars = EnvVarDictField()
     project = models.Project
 
     def create(self, validated_data):
-        env_vars = validated_data.pop('env_vars')
-        env = models.Environment.objects.create(**validated_data)
-        for var in env_vars.items():
-            models.EnvVar.objects.create(name=var[0], value=var[1])
-        return env
+        env_vars = validated_data.pop('env_vars', [])
+        environment = models.Environment.objects.create(**validated_data)
+        for env_var in env_vars:
+            environment.env_vars.add(env_var)
+        return environment
+
+    def update(self, instance, validated_data):
+        env_vars = validated_data.pop('env_vars', None)
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
+
+        if env_vars is not None:
+            instance.env_vars.clear()
+            for env_var in env_vars:
+                instance.env_vars.add(env_var)
+        return instance
 
     class Meta:
         model = models.Environment
