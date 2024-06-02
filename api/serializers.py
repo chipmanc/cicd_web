@@ -28,7 +28,7 @@ class EnvVarSerializer(serializers.ModelSerializer):
 
 class EnvironmentSerializer(serializers.ModelSerializer):
     # env_vars = EnvVarSerializer(required=False)
-    env_vars = serializers.DictField(child=serializers.CharField())
+    env_vars = serializers.DictField(child=serializers.CharField(), required=False)
     project = models.Project
 
     def create(self, validated_data):
