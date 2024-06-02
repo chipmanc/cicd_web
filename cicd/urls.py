@@ -22,7 +22,7 @@ import api
 
 urlpatterns = [path('admin/', admin.site.urls),
                path('accounts/', include('allauth.urls')),
-               path('webhook/', include('scm.urls', 'scm')),
+               # path('webhook/', include('scm.urls', 'scm')),
                path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
                # Optional UI:
                path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

@@ -48,18 +48,22 @@ class EnvironmentViewSet(AddPermission, viewsets.ModelViewSet):
     lookup_field = 'name'
 
     def get_queryset(self):
-        qs = models.Environment.objects.filter(project__account__name=self.kwargs['account'],
-                                               project__name=self.kwargs['project'])
+        account_name = self.kwargs['account']
+        project_name = self.kwargs['project']
+        qs = models.Environment.objects.filter(project__account__name=account_name,
+                                               project__name=project_name)
+        print(qs)
         if self.request.user.has_perm('api.view_project',
-                                      models.Project.objects.get(account__name=self.kwargs['account'],
-                                                                 name=self.kwargs['project'])):
+                                      models.Project.objects.get(account__name=account_name,
+                                                                 name=project_name)):
             return qs
         else:
             raise Http404("Account not found")
 
     def perform_create(self, serializer):
+        account_name = self.kwargs['account']
         project_name = self.kwargs['project']
-        project = models.Project.objects.get(account__name=self.kwargs['account'], name=project_name)
+        project = models.Project.objects.get(account__name=account_name, name=project_name)
 
         # Could have a validate_account method for serializer, but would then need to overwrite create()
         # which does more stuff, right now serializer class is clean, and we're doing stuff here anyway.
