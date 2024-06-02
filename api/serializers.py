@@ -30,6 +30,13 @@ class EnvironmentSerializer(WritableNestedModelSerializer):
     env_vars = EnvVarSerializer(required=False, many=True)
     project = models.Project
 
+    def create(self, validated_data):
+        env_vars = validated_data.pop('env_vars')
+        env = models.Environment.objects.create(**validated_data)
+        for var in env_vars.items():
+            models.EnvVar.objects.create(name=var[0], value=var[1])
+        return env
+
     class Meta:
         model = models.Environment
         fields = ('name', 'env_vars')
