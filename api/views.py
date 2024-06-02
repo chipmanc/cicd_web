@@ -17,8 +17,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     lookup_field = 'name'
 
     def get_queryset(self):
-        qs = models.Project.objects.filter(account__name=self.kwargs['account'])
-        if self.request.user.has_perm('api.view_account', models.Account.objects.get(name=self.kwargs['account'])):
+        account = self.kwargs['account']
+        qs = models.Project.objects.filter(account__name=account)
+        if self.request.user.has_perm('api.view_account', models.Account.objects.get(name=account)):
             return qs
         else:
             raise Http404("Account not found")
