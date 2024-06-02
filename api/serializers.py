@@ -27,7 +27,7 @@ class EnvVarSerializer(serializers.ModelSerializer):
 
 
 class EnvironmentSerializer(serializers.ModelSerializer):
-    env_vars = EnvVarSerializer(required=False, many=True)
+    env_vars = EnvVarSerializer(required=False)
     project = models.Project
 
     def create(self, validated_data):
