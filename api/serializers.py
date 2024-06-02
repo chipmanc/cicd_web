@@ -50,7 +50,7 @@ class StageSerializer(serializers.ModelSerializer):
         fields = ('name', 'jobs')
 
 
-class PipelineSerializer(serializers.ModelSerializer):
+class PipelineSerializer(WritableNestedModelSerializer):
     stages = StageSerializer(required=False, many=True)
     environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
 
