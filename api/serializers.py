@@ -26,7 +26,7 @@ class EnvVarSerializer(serializers.ModelSerializer):
         fields = ('name', 'value')
 
 
-class EnvironmentSerializer(WritableNestedModelSerializer):
+class EnvironmentSerializer(serializers.ModelSerializer):
     env_vars = EnvVarSerializer(required=False, many=True)
     project = models.Project
 
