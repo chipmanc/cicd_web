@@ -35,11 +35,7 @@ class EnvVarDictField(serializers.Field):
 
         env_vars = []
         for key, value in data.items():
-            env_var, created = models.EnvVar.objects.get_or_create(name=key, defaults={'value': value})
-            if not created and env_var.value != value:
-                env_var.value = value
-                env_var.save()
-            env_vars.append(env_var)
+            env_vars.append({'key': key, 'value': value})
         return env_vars
 
 
@@ -51,18 +47,20 @@ class EnvironmentSerializer(serializers.ModelSerializer):
         env_vars = validated_data.pop('env_vars', [])
         environment = models.Environment.objects.create(**validated_data)
         for env_var in env_vars:
-            environment.env_vars.add(env_var)
+            models.EnvVar.objects.create(environment=environment, **env_vars)
         return environment
 
     def update(self, instance, validated_data):
         env_vars = validated_data.pop('env_vars', None)
         instance.name = validated_data.get('name', instance.name)
         instance.save()
-
         if env_vars is not None:
-            instance.env_vars.clear()
-            for env_var in env_vars:
-                instance.env_vars.add(env_var)
+            # Clear existing env_vars
+            instance.env_vars.all().delete()
+            # Add new env_vars
+            for env_var_data in env_vars:
+                models.EnvVar.objects.create(environment=instance, **env_var_data)
+
         return instance
 
     class Meta:
