@@ -47,7 +47,7 @@ class EnvironmentSerializer(serializers.ModelSerializer):
         env_vars = validated_data.pop('env_vars', [])
         environment = models.Environment.objects.create(**validated_data)
         for env_var in env_vars:
-            models.EnvVar.objects.create(environment=environment, **env_vars)
+            models.EnvVar.objects.create(environment=environment, **env_var)
         return environment
 
     def update(self, instance, validated_data):
@@ -58,8 +58,8 @@ class EnvironmentSerializer(serializers.ModelSerializer):
             # Clear existing env_vars
             instance.env_vars.all().delete()
             # Add new env_vars
-            for env_var_data in env_vars:
-                models.EnvVar.objects.create(environment=instance, **env_var_data)
+            for env_var in env_vars:
+                models.EnvVar.objects.create(environment=instance, **env_var)
 
         return instance
 
