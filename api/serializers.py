@@ -25,7 +25,7 @@ class EnvVarDictField(serializers.Field):
         # Convert the queryset of EnvVar instances to a dictionary
         env_vars = {}
         for env_var in value.all():
-            env_vars[env_var.name] = env_var.value
+            env_vars[env_var.key] = env_var.value
         return env_vars
 
     def to_internal_value(self, data):

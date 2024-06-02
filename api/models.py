@@ -71,15 +71,15 @@ class Environment(models.Model):
 
 
 class EnvVar(models.Model):
-    name = models.CharField(max_length=255)
+    key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
     environment = models.ForeignKey(Environment, on_delete=models.CASCADE, related_name='env_vars')
 
     def __str__(self):
-        return self.name
+        return self.key
 
     class Meta:
-        unique_together = ('name', 'environment')
+        unique_together = ('key', 'environment')
 
 
 class Pipeline(models.Model):
