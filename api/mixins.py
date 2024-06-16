@@ -6,8 +6,9 @@ from api import models, utils
 
 class AddPermission(viewsets.ModelViewSet):
     def perform_create(self, serializer):
+        account_name = self.kwargs['account']
         project_name = self.kwargs['project']
-        project = models.Project.objects.get(name=project_name)
+        project = models.Project.objects.get(name=project_name, account__name=account_name)
         if not self.request.user.has_perm('api.change_project', project):
             raise Http404("Account not found")
         obj = serializer.save(project=project)
