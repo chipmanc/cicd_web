@@ -74,6 +74,17 @@ class EnvironmentViewSet(AddPermission, viewsets.ModelViewSet):
 
 
 class PipelineViewSet(AddPermission, viewsets.ModelViewSet):
-    queryset = models.Pipeline.objects.all()
     serializer_class = serializers.PipelineSerializer
     lookup_field = 'name'
+
+    def get_queryset(self):
+        account_name = self.kwargs['account']
+        project_name = self.kwargs['project']
+        qs = models.Pipeline.objects.filter(project__account__name=account_name,
+                                            project__name=project_name)
+        if self.request.user.has_perm('api.view_project',
+                                      models.Project.objects.get(account__name=account_name,
+                                                                 name=project_name)):
+            return qs
+        else:
+            raise Http404("Account not found")
