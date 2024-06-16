@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from drf_writable_nested.serializers import WritableNestedModelSerializer
 
 from api import models
 
@@ -40,7 +39,7 @@ class EnvVarDictField(serializers.Field):
 
 
 class EnvironmentSerializer(serializers.ModelSerializer):
-    env_vars = EnvVarDictField()
+    env_vars = EnvVarDictField(allow_null=True, default={})
     project = models.Project
 
     def create(self, validated_data):
@@ -83,7 +82,7 @@ class StageSerializer(serializers.ModelSerializer):
         fields = ('name', 'jobs')
 
 
-class PipelineSerializer(WritableNestedModelSerializer):
+class PipelineSerializer(serializers.ModelSerializer):
     stages = StageSerializer(required=False, many=True)
     environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
 
