@@ -59,7 +59,6 @@ class EnvironmentSerializer(serializers.ModelSerializer):
             # Add new env_vars
             for env_var in env_vars:
                 models.EnvVar.objects.create(environment=instance, **env_var)
-
         return instance
 
     class Meta:
@@ -96,6 +95,25 @@ class ProjectSerializer(serializers.ModelSerializer):
     account = models.Account
     environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
     pipelines = SlugFieldByProject(queryset=models.Pipeline.objects.all(), many=True, slug_field="name")
+
+    def create(self, validated_data):
+        envs = validated_data.pop('environments', [])
+        pipeline = models.Pipeline.objects.create(**validated_data)
+        for env in envs:
+            models.Environment.objects.create(pipelines=pipeline, name=env)
+        return pipeline
+
+    def update(self, instance, validated_data):
+        envs = validated_data.pop('environments', [])
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
+        if envs is not None:
+            # Clear existing env_vars
+            instance.environments.all().delete()
+            # Add new env_vars
+            for env in envs:
+                models.Environment.objects.create(pipelines=instance, name=env)
+        return instance
 
     class Meta:
         model = models.Project
