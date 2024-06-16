@@ -85,17 +85,6 @@ class PipelineSerializer(serializers.ModelSerializer):
     stages = StageSerializer(required=False, many=True)
     environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
 
-    class Meta:
-        model = models.Pipeline
-        depth = 2
-        fields = ('name', 'stages', 'environments')
-
-
-class ProjectSerializer(serializers.ModelSerializer):
-    account = models.Account
-    environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
-    pipelines = SlugFieldByProject(queryset=models.Pipeline.objects.all(), many=True, slug_field="name")
-
     def create(self, validated_data):
         envs = validated_data.pop('environments', [])
         pipeline = models.Pipeline.objects.create(**validated_data)
@@ -114,6 +103,17 @@ class ProjectSerializer(serializers.ModelSerializer):
             for env in envs:
                 models.Environment.objects.create(pipelines=instance, name=env)
         return instance
+
+    class Meta:
+        model = models.Pipeline
+        depth = 2
+        fields = ('name', 'stages', 'environments')
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    account = models.Account
+    environments = SlugFieldByProject(queryset=models.Environment.objects.all(), many=True, slug_field="name")
+    pipelines = SlugFieldByProject(queryset=models.Pipeline.objects.all(), many=True, slug_field="name")
 
     class Meta:
         model = models.Project
