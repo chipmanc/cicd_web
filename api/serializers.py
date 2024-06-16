@@ -1,6 +1,11 @@
+import logging
+
 from rest_framework import serializers
 
 from api import models
+
+
+logger = logging.getLogger()
 
 
 class SlugFieldByProject(serializers.SlugRelatedField):
@@ -87,7 +92,7 @@ class PipelineSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         envs = validated_data.pop('environments', [])
-        print(envs)
+        logger.error(envs)
         pipeline = models.Pipeline.objects.create(**validated_data)
         for env in envs:
             models.Environment.objects.create(name=env, project=pipeline.project)
