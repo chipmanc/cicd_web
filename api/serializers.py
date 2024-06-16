@@ -89,7 +89,7 @@ class PipelineSerializer(serializers.ModelSerializer):
         envs = validated_data.pop('environments', [])
         pipeline = models.Pipeline.objects.create(**validated_data)
         for env in envs:
-            models.Environment.objects.create(name=env, project=pipeline.project)
+            models.Environment.objects.create(name=env, project=pipeline.project.name)
         return pipeline
 
     def update(self, instance, validated_data):
@@ -101,7 +101,7 @@ class PipelineSerializer(serializers.ModelSerializer):
             instance.environments.all().delete()
             # Add new env_vars
             for env in envs:
-                models.Environment.objects.create(name=env, project=instance.project)
+                models.Environment.objects.create(name=env, project=instance.project.name)
         return instance
 
     class Meta:
