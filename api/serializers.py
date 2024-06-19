@@ -105,7 +105,7 @@ class PipelineSerializer(serializers.ModelSerializer):
         if environments is not None:
             # Clear existing env_vars
             instance.environments.all().delete()
-            # Add new env_vars
+            # Add new environments
             for env in environments:
                 models.Environment.objects.git_or_create(name=env, project=instance.project)
         return instance
