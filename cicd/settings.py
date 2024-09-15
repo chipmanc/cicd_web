@@ -48,14 +48,15 @@ INSTALLED_APPS = [
     'api',
     # 'scm',
     'rest_framework',
-    'rest_framework_guardian',
+    #'rest_framework_guardian',
     'guardian',
     'allauth',
     'allauth.account',
     'encrypted_model_fields',
     'drf_spectacular',
     'django_reverse_admin',
-    'debug_toolbar'
+    'debug_toolbar',
+    'rest_framework_simplejwt'
 ]
 
 
@@ -146,6 +147,10 @@ AUTH_USER_MODEL = 'api.User'
 ANONYMOUS_USER_NAME = None
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework_guardian.filters.DjangoObjectPermissionsFilter'
     ],
@@ -177,3 +182,10 @@ SPECTACULAR_SETTINGS = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 LOGIN_REDIRECT_URL = '/api/schema/swagger-ui/'
+
+
+SIMPLE_JWT = {
+  # It will work instead of the default serializer(TokenObtainPairSerializer).
+  "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
+  # ...
+}

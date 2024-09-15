@@ -1,4 +1,5 @@
 from django.http import Http404
+from rest_framework import permissions
 from rest_framework import viewsets
 
 from api import models, serializers
@@ -18,6 +19,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         account = self.kwargs['account']
+        print(self.request._auth['project'])
         qs = models.Project.objects.filter(account__name=account)
         if self.request.user.has_perm('api.view_account', models.Account.objects.get(name=account)):
             return qs
@@ -61,19 +63,9 @@ class EnvironmentViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
     #         raise Http404("Account not found")
 
 
-class PipelineViewSet(AddPermission, viewsets.ModelViewSet):
+class PipelineViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+    queryset = models.Pipeline.objects.all()
     serializer_class = serializers.PipelineSerializer
+    permission_classes = (permissions.DjangoObjectPermissions,)
     lookup_field = 'name'
-
-    def get_queryset(self):
-        account_name = self.kwargs['account']
-        project_name = self.kwargs['project']
-        qs = models.Pipeline.objects.filter(project__account__name=account_name,
-                                            project__name=project_name)
-        if self.request.user.has_perm('api.view_project',
-                                      models.Project.objects.get(account__name=account_name,
-                                                                 name=project_name)):
-            return qs
-        else:
-            raise Http404("Account not found")
 
