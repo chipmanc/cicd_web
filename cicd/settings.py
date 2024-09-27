@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -46,8 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
-    # 'scm',
     'rest_framework',
+    'rest_framework.authtoken',
     #'rest_framework_guardian',
     'guardian',
     'allauth',
@@ -56,7 +57,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_reverse_admin',
     'debug_toolbar',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'dj_rest_auth'
 ]
 
 
@@ -185,7 +187,13 @@ LOGIN_REDIRECT_URL = '/api/schema/swagger-ui/'
 
 
 SIMPLE_JWT = {
-  # It will work instead of the default serializer(TokenObtainPairSerializer).
-  "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
-  # ...
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
+}
+
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_HTTPONLY": False,
+#    "JWT_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer"
 }

@@ -1,24 +1,17 @@
 from django.contrib.auth.models import update_last_login
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 
 
-class MyTokenObtainSerializer(TokenObtainSerializer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["project"] = serializers.CharField()
-
-
-#class CustomTokenObtainPairSerializer(MyTokenObtainSerializer):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     token_class = RefreshToken
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["project"] = serializers.CharField(required=False)
+        print(self.__dict__)
+        self.fields["project"] = serializers.CharField(required=False, default="default")
         self.fields["account"] = serializers.CharField(required=False)
 
     def validate(self, attrs):
