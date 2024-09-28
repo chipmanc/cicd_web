@@ -44,8 +44,3 @@ try:
     urlpatterns += [path(r'__debug__/', include(debug_toolbar.urls))]
 except ImportError:
     pass
-
-
-urlpatterns += [
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
-]

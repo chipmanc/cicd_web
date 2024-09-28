@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 from django.test import TestCase
 from model_bakery import baker
 
@@ -26,7 +24,7 @@ class EnvironmentTestCase(TestCase):
 class EnvVarTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.env_var = baker.make(models.EnvVar, name='envvar')
+        cls.env_var = baker.make(models.EnvVar, key='envvar')
 
     def test_env_str(self):
         self.assertEqual(str(self.env_var), 'envvar')
@@ -50,13 +48,13 @@ class StageTestCase(TestCase):
         self.assertEqual(str(self.stage), 'stage')
 
 
-class JobTestCase(TestCase):
+class TaskTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.job = baker.make(models.Job, name='job')
+        cls.task = baker.make(models.Task, name='task')
 
-    def test_job_str(self):
-        self.assertEqual(str(self.job), 'job')
+    def test_task_str(self):
+        self.assertEqual(str(self.task), 'task')
 
 
 class ProjectTestCase(TestCase):

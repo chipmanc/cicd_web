@@ -21,15 +21,6 @@ class Account(models.Model):
         ]
 
 
-class AccountGroupMapping(models.Model):
-    name = models.CharField(max_length=255)
-    grp = models.OneToOneField(Group, on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='groups')
-
-    def __str__(self):
-        return f'{self.account.name}-{self.name}'
-
-
 class Project(models.Model):
     name = models.CharField(max_length=255)
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='projects', editable=False)
@@ -82,9 +73,23 @@ class EnvVar(models.Model):
         unique_together = ('key', 'environment')
 
 
+class Stage(models.Model):
+    name = models.CharField(max_length=255)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='stages')
+    environments = models.ManyToManyField(Environment)
+    manual_trigger = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        unique_together = ('name', 'project')
+
+
 class Pipeline(models.Model):
     name = models.CharField(max_length=255)
     environments = models.ManyToManyField(Environment)
+    stages = models.ManyToManyField(Stage, related_name='pipelines')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='pipelines')
 
     def __str__(self):
@@ -94,21 +99,16 @@ class Pipeline(models.Model):
         unique_together = ('name', 'project')
 
 
-class Stage(models.Model):
+class Task(models.Model):
     name = models.CharField(max_length=255)
-    pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE, related_name='stages')
-    manual_trigger = models.BooleanField(default=False)
+    command = models.TextField()
+    stage = models.ForeignKey(Stage, on_delete=models.CASCADE, related_name='tasks')
 
     def __str__(self):
         return self.name
 
-
-class Job(models.Model):
-    name = (models.CharField(max_length=255))
-    stage = models.ForeignKey(Stage, on_delete=models.CASCADE, related_name='jobs')
-
-    def __str__(self):
-        return self.name
+    class Meta:
+        unique_together = ('name', 'stage')
 
 
 class User(AbstractUser):

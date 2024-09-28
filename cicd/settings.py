@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'rest_framework.authtoken',
-    #'rest_framework_guardian',
     'guardian',
     'allauth',
     'allauth.account',
@@ -58,7 +57,6 @@ INSTALLED_APPS = [
     'django_reverse_admin',
     'debug_toolbar',
     'rest_framework_simplejwt',
-    'dj_rest_auth'
 ]
 
 
@@ -71,7 +69,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    #'api.middleware.InformationMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
@@ -144,7 +141,6 @@ STATIC_ROOT = '/srv/static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 AUTH_USER_MODEL = 'api.User'
 ANONYMOUS_USER_NAME = None
 
@@ -176,7 +172,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Curli CommanD API',
+    'TITLE': 'CurlI CommanD API',
     'DESCRIPTION': 'Curli Command API',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': True,
@@ -185,15 +181,8 @@ SPECTACULAR_SETTINGS = {
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 LOGIN_REDIRECT_URL = '/api/schema/swagger-ui/'
 
-
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=480),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
-}
-
-REST_AUTH = {
-    "USE_JWT": True,
-    "JWT_AUTH_HTTPONLY": False,
-#    "JWT_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer"
 }
