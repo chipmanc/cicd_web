@@ -29,9 +29,9 @@ FIELD_ENCRYPTION_KEY = 'aaX-KV3TLzLTDuJLXdBzC8fU3UgFK0dpM3BQ_t136j0='
 DEBUG = True
 APPEND_SLASH = True
 
-CSRF_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'curlicommand.com']
 
@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
-    'rest_framework.authtoken',
     'guardian',
     'allauth',
     'allauth.account',
@@ -57,6 +56,8 @@ INSTALLED_APPS = [
     'django_reverse_admin',
     'debug_toolbar',
     'rest_framework_simplejwt',
+    'django_celery_beat',
+    'scheduler'
 ]
 
 
@@ -182,7 +183,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 LOGIN_REDIRECT_URL = '/api/schema/swagger-ui/'
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=480),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=600),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
 }
+
+CELERY_BROKER_URL = 'amqp://guest:bu11shit@localhost:5672/self'  # URL for Redis (broker)
+CELERY_RESULT_BACKEND = 'rpc://'  # Backend for storing results
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'

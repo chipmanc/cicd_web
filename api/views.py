@@ -1,8 +1,12 @@
 from django.http import Http404
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import viewsets
 
+from agent.tasks import put_on_queue
 from api import models, serializers
+from cicd.celery import get_acct_celery_app
 from .mixins import AddPermission, GetQuerySet
 from .utils import add_project_perms
 
@@ -54,9 +58,30 @@ class PipelineViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
     permission_classes = (permissions.DjangoObjectPermissions,)
     lookup_field = 'name'
 
+    @action(detail=True, methods=['post'])
+    def run_pipeline(self, request, name=None):
+        account_name = self.request.auth['account']
+        app = get_acct_celery_app(acct=None)
+        task = put_on_queue.delay('test')
+        return Response(task.task_id)
+
 
 class StageViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
     queryset = models.Stage.objects.all()
     serializer_class = serializers.StageSerializer
+    permission_classes = (permissions.DjangoObjectPermissions,)
+    lookup_field = 'name'
+
+
+class TriggerViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+    queryset = models.Trigger.objects.all()
+    serializer_class = serializers.TriggerSerializer
+    permission_classes = (permissions.DjangoObjectPermissions,)
+    lookup_field = 'name'
+
+
+class AgentViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+    queryset = models.Trigger.objects.all()
+    serializer_class = serializers.AgentSerializer
     permission_classes = (permissions.DjangoObjectPermissions,)
     lookup_field = 'name'

@@ -28,6 +28,9 @@ class StageAdmin(GuardedModelAdmin):
 class TaskAdmin(GuardedModelAdmin):
     pass
 
+class TriggerAdmin(GuardedModelAdmin):
+    pass
+
 
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Account, AccountAdmin)
@@ -36,3 +39,4 @@ admin.site.register(models.Environment, EnvironmentAdmin)
 admin.site.register(models.Pipeline, PipelineAdmin)
 admin.site.register(models.Stage, StageAdmin)
 admin.site.register(models.Task, TaskAdmin)
+admin.site.register(models.Trigger, TriggerAdmin)

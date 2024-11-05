@@ -25,3 +25,26 @@ class GetQuerySet(viewsets.ModelViewSet):
         qs = queryset.filter(project__account__name=account_name,
                              project__name=project_name)
         return qs
+
+
+class NestedCreateMixin:
+    map = {}
+    model = None
+    field = None
+
+    def create(self, validated_data):
+        # Map root_model to serializer
+        for key, value in list(validated_data.items()):
+            if key in self.map:
+                sub_serializer_class = self.map[key]
+                data = validated_data.pop(key)
+
+        # Create the main root_model object using the model
+        root_model = self.model.objects.create(**validated_data)
+
+        # Use the sub-serializer to handle the nested data
+        sub_serializer = sub_serializer_class(data=data)
+        sub_serializer.is_valid(raise_exception=True)
+        sub_serializer.save(**{self.field: root_model})
+
+        return root_model

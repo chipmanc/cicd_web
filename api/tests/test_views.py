@@ -368,3 +368,7 @@ class StageViewSetTest(APITestCase):
         response = self.client.get(reverse('api:stage-detail', kwargs={"name": "stage1"}),
                                    follow=True, secure=True)
         self.assertEqual(response.status_code, 401)
+
+
+class TriggerViewSetTest(APITestCase):
+    pass

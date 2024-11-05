@@ -1,13 +1,15 @@
+from collections import OrderedDict
 import logging
 
 from rest_framework import serializers
 
-from api import models
+from api import mixins, models
 
 
 logger = logging.getLogger()
 
 
+# Execution App
 class SlugFieldByProject(serializers.SlugRelatedField):
     def get_queryset(self):
         query_set = super().get_queryset()
@@ -71,7 +73,6 @@ class EnvironmentSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    # command = serializers.CharField()
     class Meta:
         model = models.Task
         fields = ('name', 'command')
@@ -126,9 +127,14 @@ class PipelineSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         environments = validated_data.pop('environments', [])
-        logger.error(environments)
+        stages = validated_data.pop('stages', [])
         pipeline = models.Pipeline.objects.create(**validated_data)
+        for stage in stages:
+            print(stage)
+            models.Stage.objects.get_or_create(name=stage, project=pipeline.project)
+            pipeline.stages.add(stage)
         for env in environments:
+            print(env)
             models.Environment.objects.get_or_create(name=env, project=pipeline.project)
             pipeline.environments.add(env)
         return pipeline
@@ -164,3 +170,68 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Project
         fields = ('name', 'environments', 'pipelines')
+
+
+# Trigger app
+class ScmPollSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ScmPoll
+        fields = ('branch', 'shallow_clone', 'user')
+
+
+class ScmWebhookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ScmWebhook
+        fields = ('webhook_secret',)
+
+
+class GitSerializer(mixins.NestedCreateMixin, serializers.ModelSerializer):
+    map = {
+        'poll': ScmPollSerializer,
+        'webhook': ScmWebhookSerializer
+    }
+    model = models.Git
+    field = 'git'
+
+    poll = ScmPollSerializer(required=False)
+    webhook = ScmWebhookSerializer(required=False)
+
+    class Meta:
+        model = models.Git
+        fields = ('fetch', 'url', 'poll', 'webhook')
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        return OrderedDict([(key, result[key]) for key in result if result[key]])
+
+
+class TriggerSerializer(mixins.NestedCreateMixin, serializers.ModelSerializer):
+    map = {
+        'git': GitSerializer
+    }
+    model = models.Trigger
+    field = 'trigger'
+
+    git = GitSerializer(required=False)
+    # artifact = ''
+    # secret = ''
+
+    class Meta:
+        model = models.Trigger
+        fields = ('name', 'trigger_type', 'git')
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        return OrderedDict([(key, result[key]) for key in result if result[key]])
+
+    def validate(self, attrs):
+        # repo = attrs.pop('repo', {})
+        # artifact = attrs.pop('artifact', {})
+        # secret = attrs.pop('secret', {})
+        return attrs
+
+
+class AgentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ScmWebhook
+        fields = ('webhook_secret',)

@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from .utils import add_project_perms, initialize_account
 
 
+# Execution App
 class Account(models.Model):
     payment = models.CharField(max_length=20, blank=True)
     name = models.CharField(max_length=255, primary_key=True)
@@ -34,20 +35,6 @@ class Project(models.Model):
             ("add_project_users", "Can add users to project"),
             ("run_pipeline", "Can run pipeline"),
         ]
-
-
-class Repo(models.Model):
-    FETCH_TYPE = [
-        ('poll', 'Poll for changes'),
-        ('push', 'Use webhook to listen for changes')
-    ]
-    branch = models.CharField(max_length=255, default='master', blank=True)
-    fetch = models.CharField(max_length=4, choices=FETCH_TYPE, default='poll')
-    shallow_clone = models.BooleanField(default=False)
-    url = models.URLField()
-    user = models.CharField(max_length=50)
-    webhook_secret = models.CharField(max_length=255, null=True, blank=True)
-    project = models.ManyToManyField(Project)
 
 
 class Environment(models.Model):
@@ -111,6 +98,42 @@ class Task(models.Model):
         unique_together = ('name', 'stage')
 
 
+# Trigger app
+class Trigger(models.Model):
+    TRIGGER_TYPE = [
+        ('artifact', 'Artifact'),
+        ('git', 'Git'),
+        ('manual', 'Manual'),
+        ('secret', 'Secret')
+    ]
+    name = models.CharField(max_length=255, unique=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='triggers')
+    trigger_type = models.CharField(max_length=25, choices=TRIGGER_TYPE)
+
+
+class Git(models.Model):
+    FETCH_TYPE = [
+        ('poll', 'Poll'),
+        ('webhook', 'Webhook')
+    ]
+    fetch = models.CharField(max_length=15, choices=FETCH_TYPE, default='poll')
+    trigger = models.OneToOneField(Trigger, on_delete=models.CASCADE, related_name='git')
+    url = models.URLField()
+
+
+class ScmWebhook(models.Model):
+    git = models.OneToOneField(Git, on_delete=models.CASCADE, related_name='webhook')
+    webhook_secret = models.CharField(max_length=255, null=True, blank=True)
+
+
+class ScmPoll(models.Model):
+    branch = models.CharField(max_length=255, default='master')
+    git = models.OneToOneField(Git, on_delete=models.CASCADE, related_name='poll')
+    shallow_clone = models.BooleanField(default=False)
+    user = models.CharField(max_length=50)
+
+
+# API
 class User(AbstractUser):
     email = models.EmailField(max_length=255, blank=False)
 
