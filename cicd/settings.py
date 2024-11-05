@@ -158,3 +158,5 @@ REST_FRAMEWORK = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
+CELERY_BROKER_URL = "amqp://admin:BU11shit**@10.108.0.3:5672/"
