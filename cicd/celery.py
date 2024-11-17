@@ -1,11 +1,4 @@
-import os
 from celery import Celery
-
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cicd.settings")
-app = Celery("cicd")
-app.config_from_object("django.conf:settings", namespace="CELERY")
-app.autodiscover_tasks()
 
 
 def get_acct_celery_app(acct):

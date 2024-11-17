@@ -187,10 +187,3 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
 }
-
-CELERY_BROKER_URL = 'amqp://guest:bu11shit@localhost:5672/self'  # URL for Redis (broker)
-CELERY_RESULT_BACKEND = 'rpc://'  # Backend for storing results
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'

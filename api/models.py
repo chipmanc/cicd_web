@@ -91,6 +91,9 @@ class Task(models.Model):
     command = models.TextField()
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE, related_name='tasks')
 
+    def clean(self):
+        self.command = self.command.replace('\r', '')
+
     def __str__(self):
         return self.name
 

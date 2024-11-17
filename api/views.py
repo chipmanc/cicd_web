@@ -58,11 +58,13 @@ class PipelineViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
     permission_classes = (permissions.DjangoObjectPermissions,)
     lookup_field = 'name'
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def run_pipeline(self, request, name=None):
         account_name = self.request.auth['account']
         app = get_acct_celery_app(acct=None)
-        task = put_on_queue.delay('test')
+        pipeline = self.get_object()
+        pipeline = self.get_serializer(pipeline)
+        task = put_on_queue.delay(pipeline.data)
         return Response(task.task_id)
 
 
