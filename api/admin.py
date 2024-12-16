@@ -1,29 +1,56 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 from guardian.admin import GuardedModelAdmin
 
 from api import models
 
 
+@admin.register(models.Account)
 class AccountAdmin(GuardedModelAdmin):
     pass
 
 
+@admin.register(models.Project)
 class ProjectAdmin(GuardedModelAdmin):
-    pass
+    list_display = ['name', 'account']
 
 
+@admin.register(models.Environment)
 class EnvironmentAdmin(GuardedModelAdmin):
     pass
 
 
+@admin.register(models.Pipeline)
 class PipelineAdmin(GuardedModelAdmin):
     pass
 
 
-admin.site.register(models.User, UserAdmin)
-admin.site.register(models.Account, AccountAdmin)
-admin.site.register(models.Project, ProjectAdmin)
-admin.site.register(models.Environment, EnvironmentAdmin)
-admin.site.register(models.Pipeline, PipelineAdmin)
-admin.site.register(models.AccountGroupMapping)
+@admin.register(models.Task)
+class TaskAdmin(GuardedModelAdmin):
+    pass
+
+
+class ScmWebhookAdmin(admin.TabularInline):
+    model = models.ScmWebhook
+    pass
+
+
+class ScmPollAdmin(admin.TabularInline):
+    model = models.ScmPoll
+    pass
+
+
+@admin.register(models.Git)
+class GitAdmin(GuardedModelAdmin):
+    fields = ["url"]
+    list_display = ["url"]
+    inlines = [ScmWebhookAdmin, ScmPollAdmin]
+
+
+@admin.register(models.Artifact)
+class ArtifactAdmin(GuardedModelAdmin):
+    pass
+
+
+@admin.register(models.Stage)
+class StageAdmin(GuardedModelAdmin):
+    filter_horizontal = ['environments']
