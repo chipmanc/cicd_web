@@ -1,4 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -52,6 +54,7 @@ class EnvVar(models.Model):
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
     environment = models.ForeignKey(Environment, on_delete=models.CASCADE, related_name='env_vars')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.key
@@ -65,6 +68,9 @@ class Stage(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='stages')
     environments = models.ManyToManyField(Environment)
     manual_trigger = models.BooleanField(default=False)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to={'app_label': 'api'})
+    object_id = models.PositiveIntegerField()
+    trigger = GenericForeignKey("content_type", "object_id")
 
     def __str__(self):
         return self.name
@@ -101,27 +107,18 @@ class Task(models.Model):
         unique_together = ('name', 'stage')
 
 
-# Trigger app
-class Trigger(models.Model):
-    TRIGGER_TYPE = [
-        ('artifact', 'Artifact'),
-        ('git', 'Git'),
-        ('manual', 'Manual'),
-        ('secret', 'Secret')
-    ]
-    name = models.CharField(max_length=255, unique=True)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='triggers')
-    trigger_type = models.CharField(max_length=25, choices=TRIGGER_TYPE)
-
-
 class Git(models.Model):
-    FETCH_TYPE = [
-        ('poll', 'Poll'),
-        ('webhook', 'Webhook')
-    ]
-    fetch = models.CharField(max_length=15, choices=FETCH_TYPE, default='poll')
-    trigger = models.OneToOneField(Trigger, on_delete=models.CASCADE, related_name='git')
+    name = models.CharField(max_length=255, unique=True)
     url = models.URLField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='git')
+    stage = GenericRelation(Stage, content_type_field='content_type',
+                            object_id_field='object_id', related_query_name='git')
+
+    def __str__(self):
+        return self.url
+
+    class Meta:
+        verbose_name_plural = 'Git'
 
 
 class ScmWebhook(models.Model):
@@ -132,8 +129,13 @@ class ScmWebhook(models.Model):
 class ScmPoll(models.Model):
     branch = models.CharField(max_length=255, default='master')
     git = models.OneToOneField(Git, on_delete=models.CASCADE, related_name='poll')
+    ref = models.CharField(max_length=64, null=True, blank=True)
     shallow_clone = models.BooleanField(default=False)
     user = models.CharField(max_length=50)
+
+
+class Artifact(models.Model):
+    stage = GenericRelation(Stage, content_type_field='content_type', object_id_field='object_id')
 
 
 # API

@@ -176,7 +176,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ScmPollSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ScmPoll
-        fields = ('branch', 'shallow_clone', 'user')
+        fields = ('branch', 'shallow_clone', 'ref', 'user')
 
 
 class ScmWebhookSerializer(serializers.ModelSerializer):
@@ -198,37 +198,20 @@ class GitSerializer(mixins.NestedCreateMixin, serializers.ModelSerializer):
 
     class Meta:
         model = models.Git
-        fields = ('fetch', 'url', 'poll', 'webhook')
+        fields = ('name', 'url', 'poll', 'webhook')
+
+    def update(self, instance, validated_data):
+        poll = validated_data.pop('poll', [])
+        webhook = validated_data.pop('webhook', [])
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
+        if poll is not None:
+            models.ScmPoll.objects.update_or_create(poll, git=instance)
+        return instance
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
         return OrderedDict([(key, result[key]) for key in result if result[key]])
-
-
-class TriggerSerializer(mixins.NestedCreateMixin, serializers.ModelSerializer):
-    map = {
-        'git': GitSerializer
-    }
-    model = models.Trigger
-    field = 'trigger'
-
-    git = GitSerializer(required=False)
-    # artifact = ''
-    # secret = ''
-
-    class Meta:
-        model = models.Trigger
-        fields = ('name', 'trigger_type', 'git')
-
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        return OrderedDict([(key, result[key]) for key in result if result[key]])
-
-    def validate(self, attrs):
-        # repo = attrs.pop('repo', {})
-        # artifact = attrs.pop('artifact', {})
-        # secret = attrs.pop('secret', {})
-        return attrs
 
 
 class AgentSerializer(serializers.ModelSerializer):

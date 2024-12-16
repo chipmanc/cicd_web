@@ -30,3 +30,6 @@ tzdata==2023.3
 urllib3==2.2.1
 validate-pyproject==0.16
 virtualenv==20.25.0
+
+asgiref~=3.8.1
+channels~=4.2.0

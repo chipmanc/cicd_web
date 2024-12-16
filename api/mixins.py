@@ -19,11 +19,19 @@ class AddPermission(viewsets.ModelViewSet):
 class GetQuerySet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
+        query_params = dict()
+        for k, v in self.request.query_params.items():
+            if v in ['True', 'true', 1]:
+                query_params[k] = True
+            elif v in ['False', 'false', 0]:
+                query_params[k] = False
+            else:
+                query_params[k] = v
         project_name = self.request.auth['project']
         account_name = self.request.auth['account']
-
         qs = queryset.filter(project__account__name=account_name,
-                             project__name=project_name)
+                             project__name=project_name,
+                             **query_params)
         return qs
 
 

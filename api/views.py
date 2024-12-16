@@ -75,15 +75,27 @@ class StageViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
     lookup_field = 'name'
 
 
-class TriggerViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
-    queryset = models.Trigger.objects.all()
-    serializer_class = serializers.TriggerSerializer
+class GitViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+    queryset = models.Git.objects.all()
+    serializer_class = serializers.GitSerializer
     permission_classes = (permissions.DjangoObjectPermissions,)
     lookup_field = 'name'
 
 
-class AgentViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
-    queryset = models.Trigger.objects.all()
-    serializer_class = serializers.AgentSerializer
-    permission_classes = (permissions.DjangoObjectPermissions,)
-    lookup_field = 'name'
+# class AgentViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+#     queryset = models.Agent.objects.all()
+#     serializer_class = serializers.AgentSerializer
+#     permission_classes = (permissions.DjangoObjectPermissions,)
+#     lookup_field = 'name'
+
+
+# TEST
+from django.shortcuts import render
+
+
+def index(request):
+    return render(request, "pipeline/index.html")
+
+
+def room(request, room_name):
+    return render(request, "pipeline/room.html", {"room_name": room_name})

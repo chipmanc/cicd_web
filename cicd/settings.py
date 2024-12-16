@@ -40,6 +40,7 @@ INTERNAL_IPS = ['127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,7 +58,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'rest_framework_simplejwt',
     'django_celery_beat',
-    'scheduler'
+    'scheduler',
+    'channels'
 ]
 
 
@@ -186,4 +188,15 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=600),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
+}
+
+ASGI_APPLICATION = "cicd.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_rabbitmq.core.RabbitmqChannelLayer",
+        "CONFIG": {
+            "host": "amqp://guest:bu11shit@localhost:5672/agent",
+            # "ssl_context": ... (optional)
+        },
+    },
 }
