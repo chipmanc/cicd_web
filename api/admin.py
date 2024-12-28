@@ -21,7 +21,11 @@ class EnvironmentAdmin(GuardedModelAdmin):
 
 @admin.register(models.Pipeline)
 class PipelineAdmin(GuardedModelAdmin):
-    pass
+    list_display = ['name', 'project', 'get_account_name']
+
+    @admin.display(description='Account Name', ordering='account__name')
+    def get_account_name(self, obj):
+        return obj.project.account.name
 
 
 @admin.register(models.Task)
@@ -53,4 +57,4 @@ class ArtifactAdmin(GuardedModelAdmin):
 
 @admin.register(models.Stage)
 class StageAdmin(GuardedModelAdmin):
-    filter_horizontal = ['environments']
+    pass

@@ -1,19 +1,8 @@
 from django.http import Http404
-from rest_framework import viewsets
+from rest_framework import viewsets, serializers
 
+import api.serializers
 from api import models, utils
-
-
-class AddPermission(viewsets.ModelViewSet):
-    def perform_create(self, serializer):
-        account_name = self.request.auth['account']
-        project_name = self.request.auth['project']
-        project = models.Project.objects.get(name=project_name, account__name=account_name)
-        if not self.request.user.has_perm('api.change_project', project):
-            raise Http404("Account not found")
-        obj = serializer.save(project=project)
-        # Serializer is already saved, but calling this will do the post-processing permissions
-        utils.add_perms(obj)
 
 
 class GetQuerySet(viewsets.ModelViewSet):
@@ -35,24 +24,66 @@ class GetQuerySet(viewsets.ModelViewSet):
         return qs
 
 
-class NestedCreateMixin:
-    map = {}
-    model = None
-    field = None
+class NestedMixin(serializers.ModelSerializer):
+    def get_initial(self):
+        initial_data = super().get_initial()
+        if hasattr(self.Meta.model, 'project'):
+            acct, project = utils.get_project_account_from_token(self.context.get('request'))
+            initial_data['project'] = project
+        return initial_data
 
-    def create(self, validated_data):
-        # Map root_model to serializer
-        for key, value in list(validated_data.items()):
-            if key in self.map:
-                sub_serializer_class = self.map[key]
-                data = validated_data.pop(key)
+    # def validate(self, data):
+    #     super().validate(attrs=data)
+    #     if hasattr(self.Meta.model, 'project'):
+    #         acct, project = utils.get_project_account_from_token(self.context.get('request'))
+    #         data['project'] = project
+    #     return data
 
-        # Create the main root_model object using the model
-        root_model = self.model.objects.create(**validated_data)
+    # def create(self, validated_data):
+    #     # Pull out nested data
+    #     nested_data = dict()
+    #     for field, data in list(validated_data.items()):
+    #         if field in self.map:
+    #             nested_data[self.map[field]] = validated_data.pop(field)
+    #
+    #     # Create the main root_model object
+    #     root_model = self.Meta.model.objects.create(**validated_data)
+    #     utils.add_perms(root_model)
+    #
+    #     # Use the sub-serializer to handle the nested data
+    #     # If data is a list we call the serializer class with many=True
+    #     for serializer_class, data in nested_data.items():
+    #         if type(data) == list and len(data) > 0:
+    #             if isinstance(data[0], models.models.Model):
+    #                 # d =
+    #                 serializer = serializer_class(data=data, many=True)
+    #                 manager_field = data[0]._meta.verbose_name_plural
+    #                 manager = getattr(root_model, manager_field)
+    #                 root_model.environments.add(*data)
+    #                 # manager.add(*data)
+    #                 # if data[0]._meta.verbose_name_plural == 'environments':
+    #                 #     root_model.environments.add(*data)
+    #                 #     return root_model
+    #             else:
+    #                 serializer = serializer_class(data=data, many=True)
+    #         else:
+    #             serializer = serializer_class(data=data)
+    #         serializer.is_valid(raise_exception=True)
+    #         serializer.save(**{self.field: root_model})
+    #     return root_model
 
-        # Use the sub-serializer to handle the nested data
-        sub_serializer = sub_serializer_class(data=data)
-        sub_serializer.is_valid(raise_exception=True)
-        sub_serializer.save(**{self.field: root_model})
-
-        return root_model
+    # def update(self, instance, validated_data):
+    #     nested_data = dict()
+    #     for field, data in list(validated_data.items()):
+    #         if field in self.map:
+    #             nested_data[self.map[field]] = validated_data.pop(field)
+    #
+    #     instance.name = validated_data.get('name', instance.name)
+    #     instance.save()
+    #     if tasks is not None:
+    #         # Clear existing env_vars
+    #         instance.tasks.all().delete()
+    #         # Add new environments
+    #         for task in tasks:
+    #             models.Task.objects.get_or_create(stage=instance, **task)
+    #     return instance

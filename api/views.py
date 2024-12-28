@@ -7,7 +7,7 @@ from rest_framework import viewsets
 from agent.tasks import put_on_queue
 from api import models, serializers
 from cicd.celery import get_acct_celery_app
-from .mixins import AddPermission, GetQuerySet
+from .mixins import GetQuerySet
 from .utils import add_project_perms
 
 
@@ -46,13 +46,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
-class EnvironmentViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+class EnvironmentViewSet(GetQuerySet, viewsets.ModelViewSet):
     queryset = models.Environment.objects.all()
     serializer_class = serializers.EnvironmentSerializer
     lookup_field = 'name'
 
 
-class PipelineViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+class PipelineViewSet(GetQuerySet, viewsets.ModelViewSet):
     queryset = models.Pipeline.objects.all()
     serializer_class = serializers.PipelineSerializer
     permission_classes = (permissions.DjangoObjectPermissions,)
@@ -68,21 +68,21 @@ class PipelineViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
         return Response(task.task_id)
 
 
-class StageViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+class StageViewSet(GetQuerySet, viewsets.ModelViewSet):
     queryset = models.Stage.objects.all()
     serializer_class = serializers.StageSerializer
     permission_classes = (permissions.DjangoObjectPermissions,)
     lookup_field = 'name'
 
 
-class GitViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+class GitViewSet(GetQuerySet, viewsets.ModelViewSet):
     queryset = models.Git.objects.all()
     serializer_class = serializers.GitSerializer
     permission_classes = (permissions.DjangoObjectPermissions,)
     lookup_field = 'name'
 
 
-# class AgentViewSet(AddPermission, GetQuerySet, viewsets.ModelViewSet):
+# class AgentViewSet(GetQuerySet, viewsets.ModelViewSet):
 #     queryset = models.Agent.objects.all()
 #     serializer_class = serializers.AgentSerializer
 #     permission_classes = (permissions.DjangoObjectPermissions,)

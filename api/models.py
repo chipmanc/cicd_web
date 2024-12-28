@@ -42,19 +42,20 @@ class Project(models.Model):
 class Environment(models.Model):
     name = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='environments')
+    stages = models.ManyToManyField('StageAttachment', related_name='environments')
 
     def __str__(self):
         return self.name
 
     class Meta:
         unique_together = ('name', 'project')
+        verbose_name_plural = 'environments'
 
 
 class EnvVar(models.Model):
     key = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
     environment = models.ForeignKey(Environment, on_delete=models.CASCADE, related_name='env_vars')
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.key
@@ -66,11 +67,7 @@ class EnvVar(models.Model):
 class Stage(models.Model):
     name = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='stages')
-    environments = models.ManyToManyField(Environment)
     manual_trigger = models.BooleanField(default=False)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to={'app_label': 'api'})
-    object_id = models.PositiveIntegerField()
-    trigger = GenericForeignKey("content_type", "object_id")
 
     def __str__(self):
         return self.name
@@ -81,9 +78,8 @@ class Stage(models.Model):
 
 class Pipeline(models.Model):
     name = models.CharField(max_length=255)
-    environments = models.ManyToManyField(Environment)
-    stages = models.ManyToManyField(Stage, related_name='pipelines')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='pipelines')
+    environment = models.ForeignKey(Environment, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -111,11 +107,11 @@ class Git(models.Model):
     name = models.CharField(max_length=255, unique=True)
     url = models.URLField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='git')
-    stage = GenericRelation(Stage, content_type_field='content_type',
-                            object_id_field='object_id', related_query_name='git')
+    stages = GenericRelation('StageAttachment', content_type_field='content_type',
+                             object_id_field='object_id', related_query_name='git')
 
     def __str__(self):
-        return self.url
+        return self.name
 
     class Meta:
         verbose_name_plural = 'Git'
@@ -135,7 +131,19 @@ class ScmPoll(models.Model):
 
 
 class Artifact(models.Model):
-    stage = GenericRelation(Stage, content_type_field='content_type', object_id_field='object_id')
+    stage = GenericRelation('StageAttachment', content_type_field='content_type', object_id_field='object_id')
+
+
+class StageAttachment(models.Model):
+    name = models.ForeignKey(Stage, on_delete=models.CASCADE)
+    resources = models.ManyToManyField(Git)
+    on_success = models.ForeignKey(Stage, null=True, blank=True, on_delete=models.SET_NULL, related_name='on_success')
+    on_fail = models.ForeignKey(Stage, null=True, blank=True, on_delete=models.SET_NULL, related_name='on_fail', )
+    pipeline = models.ForeignKey(Pipeline, related_name='stages', on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to={'app_label': 'api'},
+                                     blank=True, null=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    trigger = GenericForeignKey("content_type", "object_id")
 
 
 # API

@@ -21,7 +21,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-&+%v%^lmfcb7v1vv&s**u9a5#84p87b#+_7k&c=@@to6(p(8ed'
 SECRET_KEY = '(?[cE|dSX*&iZSV.dN;Tk_Irs1le8u?:)U5^VMHiJ@n</ilAJ|'
 FIELD_ENCRYPTION_KEY = 'aaX-KV3TLzLTDuJLXdBzC8fU3UgFK0dpM3BQ_t136j0='
 
@@ -32,6 +31,7 @@ APPEND_SLASH = True
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
+
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'curlicommand.com']
 
@@ -123,19 +123,14 @@ AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = '/srv/static'
 
@@ -150,7 +145,7 @@ ANONYMOUS_USER_NAME = None
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework_guardian.filters.DjangoObjectPermissionsFilter'
@@ -159,12 +154,14 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+        'rest_framework_yaml.parsers.YAMLParser'
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoObjectPermissions',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework_yaml.renderers.YAMLRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',

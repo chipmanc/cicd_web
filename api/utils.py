@@ -1,5 +1,8 @@
+from django.http import Http404
 from django.contrib.auth.models import Group
 from guardian.shortcuts import assign_perm
+
+from api import models
 
 
 def initialize_account(user, obj):
@@ -56,3 +59,13 @@ def add_perms(obj):
 
     run_group = Group.objects.get(name=f'{account.name}-{project_name}-run')
     assign_perm(f'api.view_{obj_type}', run_group, obj)
+
+
+def get_project_account_from_token(request):
+    account_name = request.auth['account']
+    project_name = request.auth['project']
+    account = models.Account.objects.get(name=account_name)
+    project = models.Project.objects.get(name=project_name, account__name=account_name)
+    if not request.user.has_perm('api.change_project', project):
+        raise Http404("Account not found")
+    return account, project
