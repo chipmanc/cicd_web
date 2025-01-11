@@ -137,7 +137,7 @@ class Artifact(models.Model):
 
 class StageAttachment(models.Model):
     name = models.ForeignKey(Stage, on_delete=models.CASCADE)
-    resources = models.ManyToManyField(Git)
+    resources = models.ManyToManyField(Git, blank=True)
     on_success = models.ForeignKey(Stage, null=True, blank=True, on_delete=models.SET_NULL, related_name='on_success')
     on_fail = models.ForeignKey(Stage, null=True, blank=True, on_delete=models.SET_NULL, related_name='on_fail', )
     pipeline = models.ForeignKey(Pipeline, related_name='stages', on_delete=models.CASCADE)

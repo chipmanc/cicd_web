@@ -83,8 +83,6 @@ class NestedMixin(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        # from pprint import pprint
-        # pprint(self.context['view'].__dict__)
         project = validated_data.pop('project', None)
         relations = self.map_attr_to_type(validated_data)
         instance.save()
@@ -101,25 +99,26 @@ class NestedMixin(serializers.ModelSerializer):
                 nested_field.is_valid(raise_exception=True)
                 nested_field.save(**{self.field: instance})
             elif self.context['view'].action == 'partial_update':
-                sub_cls = getattr(instance, nest[0]).model
-
+                nested_cls = getattr(instance, nest[0]).model
                 for nested_data in nest[1]:
                     nest_data = nested_data.copy()
                     nest_data.update({self.field: instance})
-                    nest_data = {key: nested_data[key] for key in nested_data.keys() & {'name', 'key', self.field}}
-
-                    try:
-                        sub_instance = sub_cls.objects.get(**nest_data)
-                        nested_field = sub_serializer(data=nest_data)
-                        nested_field.is_valid(raise_exception=True)
-                        nested_field.update(sub_instance, nested_data)
-                    except Exception as e:
-                        print(e)
-                    # print(x)
-                # print(sub_serializer().to_representation(sub_instances[0]))
-                # print(sub_serializer().to_internal_value(data=nest[1][0]))
-                # print(sub_instances)
-                # print(nest[1])
+                    nest_data = {key: nest_data[key] for key in nest_data.keys() & {'name', 'key', self.field}}
+                    sub_instance = nested_cls.objects.get(**nest_data)
+                    nested_field = sub_serializer(data=nested_data)
+                    nested_field.is_valid(raise_exception=True)
+                    nested_field.update(sub_instance, nested_data)
+        for nest in relations['ForwardManyToMany']:
+            nested_cls = getattr(nest[1], '__class__')
+            nested_field, _ = nested_cls.objects.get(name=nest[1], project=project)
+            setattr(instance, nest[0], nest[1])
+        for nest in relations['ManyToMany']:
+            project = getattr(instance, self.exclude[0]).project
+            field, instances = nest
+            nested_manager = getattr(instance, field)
+            for i in instances:
+                nested_manager.add(i)
+            instance.save()
 
         return instance
 
