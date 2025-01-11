@@ -3,7 +3,7 @@ import logging
 
 from rest_framework import serializers
 
-from api import mixins, models, utils
+from api import mixins, models
 
 logger = logging.getLogger()
 
@@ -46,33 +46,34 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 
+class EnvVarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.EnvVar
+        fields = ['key', 'value']
+
+
 class EnvironmentSerializer(mixins.NestedMixin, serializers.ModelSerializer):
+    map = {
+        'env_vars': 'EnvVarSerializer'
+    }
+    field = 'environment'
+
     env_vars = EnvVarDictField(allow_null=True, default={})
 
-    def create(self, validated_data):
-        env_vars = validated_data.pop('env_vars', None)
-        root_model = models.Environment.objects.create(**validated_data)
-        utils.add_perms(root_model)
-        if env_vars:
-            envvar_instances = []
-            for env_var in env_vars:
-                env_var.setdefault('environment', root_model)
-                envvar_instances.append(models.EnvVar(**env_var))
-            models.EnvVar.objects.bulk_create(envvar_instances)
-        return root_model
-
-    def update(self, instance, validated_data):
-        env_vars = validated_data.pop('env_vars', None)
-        instance.name = validated_data.get('name', instance.name)
-        instance.save()
-        if env_vars:
-            envvar_instances = []
-            instance.env_vars.all().delete()
-            for env_var in env_vars:
-                env_var.setdefault('environment', instance)
-                envvar_instances.append(models.EnvVar(**env_var))
-            models.EnvVar.objects.bulk_create(envvar_instances)
-        return instance
+    # def update(self, instance, validated_data):
+    #     env_vars = validated_data.pop('env_vars', None)
+    #     instance.name = validated_data.get('name', instance.name)
+    #     instance.save()
+    #     # if env_vars:
+    #     #     evs = instance.env_vars.all()
+    #     #     models.EnvVar.objects.bulk_update(evs, ['valueenv'])
+    #         # envvar_instances = []
+    #         # instance.env_vars.all().delete()
+    #         # for env_var in env_vars:
+    #         #     env_var.setdefault('environment', instance)
+    #         #     envvar_instances.append(models.EnvVar(**env_var))
+    #         # models.EnvVar.objects.bulk_update(envvar_instances)
+    #     return instance
 
     class Meta:
         model = models.Environment
@@ -86,23 +87,15 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class StageSerializer(mixins.NestedMixin, serializers.ModelSerializer):
-    tasks = TaskSerializer(many=True)
+    map = {
+        "tasks": 'TaskSerializer'
+    }
+    field = 'stage'
 
-    def create(self, validated_data):
-        tasks = validated_data.pop('tasks', None)
-        stage = models.Stage.objects.create(**validated_data)
-        utils.add_perms(stage)
-        if tasks:
-            task_instances = []
-            for task in tasks:
-                task.setdefault('stage', stage)
-                task_instances.append(models.Task(**task))
-            models.Task.objects.bulk_create(task_instances)
-        return stage
+    tasks = TaskSerializer(many=True)
 
     def update(self, instance, validated_data):
         tasks = validated_data.pop('tasks', None)
-        environments = validated_data.pop('environments', None)
         instance.name = validated_data.get('name', instance.name)
         instance.save()
         if tasks:
@@ -115,10 +108,17 @@ class StageSerializer(mixins.NestedMixin, serializers.ModelSerializer):
     class Meta:
         model = models.Stage
         depth = 1
-        fields = ('name', 'tasks', "environments")
+        fields = ('name', 'tasks')
 
 
-class StageAttachmentSerializer(serializers.ModelSerializer):
+class StageAttachmentSerializer(mixins.NestedMixin, serializers.ModelSerializer):
+    map = {
+        'environments': 'EnvironmentSerializer',
+        'resources': 'GitSerializer'
+    }
+    field = 'stages'
+    exclude = ['pipeline', 'name']
+
     name = SlugFieldByProject(queryset=models.Stage.objects.all(), slug_field="name")
     on_success = SlugFieldByProject(queryset=models.Stage.objects.all(), slug_field="name", many=True, required=False)
     on_fail = SlugFieldByProject(queryset=models.Stage.objects.all(), slug_field="name", many=True, required=False)
@@ -132,14 +132,6 @@ class StageAttachmentSerializer(serializers.ModelSerializer):
         model = models.StageAttachment
         fields = ['name', 'resources', 'environments', 'on_success', 'on_fail']
 
-    def create(self, validated_data):
-        environments = validated_data.pop('environments', None)
-        resources = validated_data.pop('resources', None)
-        stage_attachment = models.StageAttachment.objects.create(**validated_data)
-        stage_attachment.environments.set(environments)
-        stage_attachment.resources.set(resources)
-        return stage_attachment
-
     def update(self, instance, validated_data):
         environments = validated_data.pop('environments', None)
         if environments:
@@ -148,7 +140,13 @@ class StageAttachmentSerializer(serializers.ModelSerializer):
         pass
 
 
-class PipelineSerializer(serializers.ModelSerializer):
+class PipelineSerializer(mixins.NestedMixin, serializers.ModelSerializer):
+    map = {
+        'stages': 'StageAttachmentSerializer',
+    }
+    field = 'pipeline'
+    # exclude = ['project']
+
     stages = StageAttachmentSerializer(many=True)
     environment = SlugFieldByProject(required=False,
                                      queryset=models.Environment.objects.all(),
@@ -166,32 +164,61 @@ class PipelineSerializer(serializers.ModelSerializer):
         else:
             return value
 
-    def create(self, validated_data):
-        environments = validated_data.pop('environments', None)
+    # def create(self, validated_data):
+    #     acct, project = utils.get_project_account_from_token(self.context.get('request'))
+    #     environment = validated_data.pop('environment', None)
+    #     stages = validated_data.pop('stages', None)
+    #     pipeline = models.Pipeline.objects.create(**validated_data, project=project)
+    #     utils.add_perms(pipeline)
+    #     for stage in stages:
+    #         stg = StageAttachmentSerializer(data=stage)
+    #         stg.is_valid()
+    #         stg = stg.save(pipeline=pipeline)
+    #         pipeline.stages.add(stg)
+    #     if environment:
+    #         env, _ = models.Environment.objects.get_or_create(name=environment, project=pipeline.project)
+    #         pipeline.environment = env
+    #     return pipeline
+
+    def update(self, instance, validated_data):
+        environment = validated_data.pop('environment', None)
         stages = validated_data.pop('stages', None)
-        pipeline = models.Pipeline.objects.create(**validated_data)
-        utils.add_perms(pipeline)
         for stage in stages:
             stg = StageAttachmentSerializer(data=stage)
             stg.is_valid()
-            stg = stg.save(pipeline=pipeline)
-            pipeline.stages.add(stg)
-        # for env in environments:
-        #     models.Environment.objects.get_or_create(name=env, project=pipeline.project)
-        #     pipeline.environments.add(env)
-        return pipeline
-
-    def update(self, instance, validated_data):
-        environments = validated_data.pop('environments', [])
+            stg = stg.save(pipeline=instance)
+            instance.stages.add(stg)
         instance.name = validated_data.get('name', instance.name)
         instance.save()
-        if environments is not None:
+        if environment:
             # Clear existing env_vars
-            instance.environments.all().delete()
+            if instance.environment:
+                instance.environment.all().delete()
             # Add new environments
-            for env in environments:
-                models.Environment.objects.get_or_create(name=env, project=instance.project)
+            env, _ = models.Environment.objects.get_or_create(name=environment, project=instance.project)
+            instance.environment = env
         return instance
+
+
+class ReadOnlyStageAttachmentSerializer(serializers.ModelSerializer):
+    name = StageSerializer()
+    resources = SlugFieldByProject(queryset=models.Git.objects.all(), slug_field="name", many=True)
+    environments = EnvironmentSerializer(many=True)
+
+    class Meta:
+        model = models.StageAttachment
+        fields = ['name', 'environments', 'resources']
+        depth = 3
+
+
+class ReadOnlyPipelineSerializer(serializers.ModelSerializer):
+    stages = ReadOnlyStageAttachmentSerializer(many=True)
+    environment = EnvironmentSerializer()
+
+    class Meta:
+        model = models.Pipeline
+        fields = ['name', 'environment', 'stages']
+        depth = 3
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -224,8 +251,8 @@ class ScmWebhookSerializer(serializers.ModelSerializer):
 
 class GitSerializer(mixins.NestedMixin, serializers.ModelSerializer):
     map = {
-        'poll': ScmPollSerializer,
-        'webhook': ScmWebhookSerializer
+        'poll': 'ScmPollSerializer',
+        'webhook': 'ScmWebhookSerializer'
     }
     field = 'git'
 

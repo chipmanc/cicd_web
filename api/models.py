@@ -107,8 +107,9 @@ class Git(models.Model):
     name = models.CharField(max_length=255, unique=True)
     url = models.URLField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='git')
-    stages = GenericRelation('StageAttachment', content_type_field='content_type',
-                             object_id_field='object_id', related_query_name='git')
+    stages = models.ManyToManyField('StageAttachment')
+    # stages = GenericRelation('StageAttachment', content_type_field='content_type',
+    #                          object_id_field='object_id', related_query_name='git')
 
     def __str__(self):
         return self.name

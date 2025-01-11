@@ -14,9 +14,13 @@ class ProjectAdmin(GuardedModelAdmin):
     list_display = ['name', 'account']
 
 
+class EnvVar(admin.TabularInline):
+    model = models.EnvVar
+
+
 @admin.register(models.Environment)
 class EnvironmentAdmin(GuardedModelAdmin):
-    pass
+    inlines = [EnvVar]
 
 
 @admin.register(models.Pipeline)
@@ -45,8 +49,8 @@ class ScmPollAdmin(admin.TabularInline):
 
 @admin.register(models.Git)
 class GitAdmin(GuardedModelAdmin):
-    fields = ["url"]
-    list_display = ["url"]
+    fields = ["name"]
+    list_display = ["name"]
     inlines = [ScmWebhookAdmin, ScmPollAdmin]
 
 

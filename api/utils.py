@@ -1,3 +1,5 @@
+import json
+
 from django.http import Http404
 from django.contrib.auth.models import Group
 from guardian.shortcuts import assign_perm
@@ -69,3 +71,12 @@ def get_project_account_from_token(request):
     if not request.user.has_perm('api.change_project', project):
         raise Http404("Account not found")
     return account, project
+
+
+def get_env(*args):
+    env_dict = {}
+    # Order is important.  Rightmost dictionary will override equivalent values
+    for env in args:
+        if env.get('env_vars', None):
+            env_dict.update(env['env_vars'])
+    return env_dict

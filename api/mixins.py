@@ -1,4 +1,4 @@
-from django.http import Http404
+from django.db.models.fields.related_descriptors import *
 from rest_framework import viewsets, serializers
 
 import api.serializers
@@ -25,65 +25,107 @@ class GetQuerySet(viewsets.ModelViewSet):
 
 
 class NestedMixin(serializers.ModelSerializer):
-    def get_initial(self):
-        initial_data = super().get_initial()
+    map = {}
+    field = ''
+    exclude = []
+    Meta = None
+
+    def map_attr_to_type(self, data):
+        relations = {"ReverseManyToMany": [],
+                     "ForwardManyToMany": [],
+                     "ManyToMany": []}
+        for attribute, value in list(data.items()):
+            if attribute in self.exclude:
+                continue
+            attr_type = type(getattr(self.Meta.model, attribute))
+            if attr_type == ReverseManyToOneDescriptor:
+                relations['ReverseManyToMany'].append((attribute, data.pop(attribute)))
+            elif attr_type == ForwardManyToOneDescriptor:
+                relations['ForwardManyToMany'].append((attribute, data.pop(attribute)))
+            elif attr_type == ManyToManyDescriptor:
+                relations['ManyToMany'].append((attribute, data.pop(attribute)))
+        return relations
+
+    def create(self, validated_data):
+        project = validated_data.pop('project', None)
+        relations = self.map_attr_to_type(validated_data)
+
+        if hasattr(self.Meta.model, 'project'):
+            instance = self.Meta.model.objects.create(**validated_data, project=project)
+            utils.add_perms(instance)
+        else:
+            instance = self.Meta.model.objects.create(**validated_data)
+
+        for nest in relations['ReverseManyToMany']:
+            sub_serializer = getattr(api.serializers, self.map[nest[0]])
+            if isinstance(nest[1], list):
+                nested_field = sub_serializer(data=nest[1], many=True)
+            else:
+                nested_field = sub_serializer(data=nest[1])
+            nested_field.is_valid(raise_exception=True)
+            nested_field.save(**{self.field: instance})
+        for nest in relations['ForwardManyToMany']:
+            nested_model_type = getattr(nest[1], '__class__')
+            nested_field, _ = nested_model_type.objects.get_or_create(name=nest[1],
+                                                                      project=project)
+            setattr(instance, nest[0], nest[1])
+            instance.save()
+        for nest in relations['ManyToMany']:
+            project = getattr(instance, self.exclude[0]).project
+            field, instances = nest
+            for i in instances:
+                nested_model_type = getattr(i, '__class__')
+                nested_field, _ = nested_model_type.objects.get_or_create(name=i,
+                                                                          project=project)
+                nested_manager = getattr(instance, field)
+                nested_manager.add(nested_field)
+
+        return instance
+
+    def update(self, instance, validated_data):
+        # from pprint import pprint
+        # pprint(self.context['view'].__dict__)
+        project = validated_data.pop('project', None)
+        relations = self.map_attr_to_type(validated_data)
+        instance.save()
+
+        for nest in relations['ReverseManyToMany']:
+            sub_serializer = getattr(api.serializers, self.map[nest[0]])
+            if self.context['view'].action == 'update':
+                manager = getattr(instance, nest[0])
+                manager.get_queryset().delete()
+                if isinstance(nest[1], list):
+                    nested_field = sub_serializer(data=nest[1], many=True)
+                else:
+                    nested_field = sub_serializer(data=nest[1])
+                nested_field.is_valid(raise_exception=True)
+                nested_field.save(**{self.field: instance})
+            elif self.context['view'].action == 'partial_update':
+                sub_cls = getattr(instance, nest[0]).model
+
+                for nested_data in nest[1]:
+                    nest_data = nested_data.copy()
+                    nest_data.update({self.field: instance})
+                    nest_data = {key: nested_data[key] for key in nested_data.keys() & {'name', 'key', self.field}}
+
+                    try:
+                        sub_instance = sub_cls.objects.get(**nest_data)
+                        nested_field = sub_serializer(data=nest_data)
+                        nested_field.is_valid(raise_exception=True)
+                        nested_field.update(sub_instance, nested_data)
+                    except Exception as e:
+                        print(e)
+                    # print(x)
+                # print(sub_serializer().to_representation(sub_instances[0]))
+                # print(sub_serializer().to_internal_value(data=nest[1][0]))
+                # print(sub_instances)
+                # print(nest[1])
+
+        return instance
+
+    def validate(self, data):
+        super().validate(attrs=data)
         if hasattr(self.Meta.model, 'project'):
             acct, project = utils.get_project_account_from_token(self.context.get('request'))
-            initial_data['project'] = project
-        return initial_data
-
-    # def validate(self, data):
-    #     super().validate(attrs=data)
-    #     if hasattr(self.Meta.model, 'project'):
-    #         acct, project = utils.get_project_account_from_token(self.context.get('request'))
-    #         data['project'] = project
-    #     return data
-
-    # def create(self, validated_data):
-    #     # Pull out nested data
-    #     nested_data = dict()
-    #     for field, data in list(validated_data.items()):
-    #         if field in self.map:
-    #             nested_data[self.map[field]] = validated_data.pop(field)
-    #
-    #     # Create the main root_model object
-    #     root_model = self.Meta.model.objects.create(**validated_data)
-    #     utils.add_perms(root_model)
-    #
-    #     # Use the sub-serializer to handle the nested data
-    #     # If data is a list we call the serializer class with many=True
-    #     for serializer_class, data in nested_data.items():
-    #         if type(data) == list and len(data) > 0:
-    #             if isinstance(data[0], models.models.Model):
-    #                 # d =
-    #                 serializer = serializer_class(data=data, many=True)
-    #                 manager_field = data[0]._meta.verbose_name_plural
-    #                 manager = getattr(root_model, manager_field)
-    #                 root_model.environments.add(*data)
-    #                 # manager.add(*data)
-    #                 # if data[0]._meta.verbose_name_plural == 'environments':
-    #                 #     root_model.environments.add(*data)
-    #                 #     return root_model
-    #             else:
-    #                 serializer = serializer_class(data=data, many=True)
-    #         else:
-    #             serializer = serializer_class(data=data)
-    #         serializer.is_valid(raise_exception=True)
-    #         serializer.save(**{self.field: root_model})
-    #     return root_model
-
-    # def update(self, instance, validated_data):
-    #     nested_data = dict()
-    #     for field, data in list(validated_data.items()):
-    #         if field in self.map:
-    #             nested_data[self.map[field]] = validated_data.pop(field)
-    #
-    #     instance.name = validated_data.get('name', instance.name)
-    #     instance.save()
-    #     if tasks is not None:
-    #         # Clear existing env_vars
-    #         instance.tasks.all().delete()
-    #         # Add new environments
-    #         for task in tasks:
-    #             models.Task.objects.get_or_create(stage=instance, **task)
-    #     return instance
+            data['project'] = project
+        return data

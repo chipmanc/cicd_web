@@ -5,10 +5,9 @@ from rest_framework import permissions
 from rest_framework import viewsets
 
 from agent.tasks import put_on_queue
-from api import models, serializers
+from api import models, serializers, utils
 from cicd.celery import get_acct_celery_app
 from .mixins import GetQuerySet
-from .utils import add_project_perms
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -36,7 +35,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         #     raise Http404("Account not found")
         obj = serializer.save(account=account)
         # Serializer is already saved, but calling this will do the post-processing permissions
-        add_project_perms(self.request.user, obj)
+        utils.add_project_perms(self.request.user, obj)
 
     def perform_destroy(self, instance):
         account_name = self.request.auth['account']
@@ -60,12 +59,20 @@ class PipelineViewSet(GetQuerySet, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def run_pipeline(self, request, name=None):
+        proj, acct = utils.get_project_account_from_token(request)
         account_name = self.request.auth['account']
         app = get_acct_celery_app(acct=None)
         pipeline = self.get_object()
-        pipeline = self.get_serializer(pipeline)
-        task = put_on_queue.delay(pipeline.data)
-        return Response(task.task_id)
+        pipeline = serializers.ReadOnlyPipelineSerializer(instance=pipeline)
+        task_list = []
+        # TODO First stage by default, but should have a field for entry
+        stage = pipeline['stages'].value[0]
+        pipeline_env = pipeline['environment'].value
+        for environment in stage['environments']:
+            env = utils.get_env(pipeline_env, environment)
+            task = put_on_queue.delay(stage, env)
+            task_list.append(task.task_id)
+        return Response(task_list)
 
 
 class StageViewSet(GetQuerySet, viewsets.ModelViewSet):
