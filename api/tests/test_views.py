@@ -3,21 +3,22 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
 from api import models
+from cicd.serializers import CustomTokenObtainPairSerializer
 
 
 class AccountViewSetTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        baker.make(models.User, username='private')
+        baker.make(models.User, username='red_user')
 
     def setUp(self):
-        self.user = baker.make(models.User, username='user1', password='password')
+        self.user = baker.make(models.User, username='blue_user', password='password')
 
     def test_user_can_only_view_their_accounts(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('api:account-list'), format='json', follow=True, secure=True)
-        self.assertIn({'name': 'user1'}, response.data['results'])
-        self.assertNotIn({'name': 'private'}, response.data['results'])
+        self.assertIn({'name': 'blue_user'}, response.data['results'])
+        self.assertNotIn({'name': 'red_user'}, response.data['results'])
         self.assertEqual(len(response.data['results']), 1)
 
     def test_anonymous_user_has_no_permissions(self):
@@ -28,12 +29,12 @@ class AccountViewSetTest(APITestCase):
 class ProjectViewSetTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        baker.make(models.User, username='private')
+        baker.make(models.User, username='red_user')
 
     def setUp(self):
-        self.user = models.User.objects.create_user(username="user1", password="password")
+        self.user = models.User.objects.create_user(username="blue_user", password="password")
         response = self.client.post(reverse('token_obtain_pair'),
-                                    data={'username': "user1", 'password': "password"},
+                                    data={'username': "blue_user", 'password': "password"},
                                     format='json',
                                     headers={"content-type": "application/json"}
                                     )
@@ -51,7 +52,7 @@ class ProjectViewSetTest(APITestCase):
                                     secure=True
                                     )
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(len(models.Project.objects.filter(account__name='user1')), 2)
+        self.assertEqual(len(models.Project.objects.filter(account__name='blue_user')), 2)
 
     def test_list_projects(self):
         """
@@ -107,9 +108,9 @@ class ProjectViewSetTest(APITestCase):
 
 class EnvironmentViewSetTest(APITestCase):
     def setUp(self):
-        self.user = models.User.objects.create_user(username="user1", password="password")
+        self.user = models.User.objects.create_user(username="blue_user", password="password")
         response = self.client.post(reverse('token_obtain_pair'),
-                                    data={'username': "user1", 'password': "password"},
+                                    data={'username': "blue_user", 'password': "password"},
                                     format='json',
                                     headers={"content-type": "application/json"}
                                     )
@@ -133,7 +134,7 @@ class EnvironmentViewSetTest(APITestCase):
                                     secure=True
                                     )
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(len(models.Environment.objects.filter(project__account__name='user1')), 2)
+        self.assertEqual(len(models.Environment.objects.filter(project__account__name='blue_user')), 2)
         self.assertDictEqual(response.data['env_vars'], {"key": "value"})
 
     def test_list_environments(self):
@@ -195,9 +196,9 @@ class EnvironmentViewSetTest(APITestCase):
 
 class PipelineViewSetTest(APITestCase):
     def setUp(self):
-        self.user = models.User.objects.create_user(username="user1", password="password")
+        self.user = models.User.objects.create_user(username="blue_user", password="password")
         response = self.client.post(reverse('token_obtain_pair'),
-                                    data={'username': "user1", 'password': "password"},
+                                    data={'username': "blue_user", 'password': "password"},
                                     format='json',
                                     headers={"content-type": "application/json"}
                                     )
@@ -222,7 +223,7 @@ class PipelineViewSetTest(APITestCase):
                                     secure=True
                                     )
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(len(models.Pipeline.objects.filter(project__account__name='user1')), 2)
+        self.assertEqual(len(models.Pipeline.objects.filter(project__account__name='blue_user')), 2)
 
     def test_list_pipelines(self):
         """
@@ -283,9 +284,9 @@ class PipelineViewSetTest(APITestCase):
 
 class StageViewSetTest(APITestCase):
     def setUp(self):
-        self.user = models.User.objects.create_user(username="user1", password="password")
+        self.user = models.User.objects.create_user(username="blue_user", password="password")
         response = self.client.post(reverse('token_obtain_pair'),
-                                    data={'username': "user1", 'password': "password"},
+                                    data={'username': "blue_user", 'password': "password"},
                                     format='json',
                                     headers={"content-type": "application/json"}
                                     )
@@ -310,7 +311,7 @@ class StageViewSetTest(APITestCase):
                                     secure=True
                                     )
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(len(models.Stage.objects.filter(project__account__name='user1')), 2)
+        self.assertEqual(len(models.Stage.objects.filter(project__account__name='blue_user')), 2)
 
     def test_list_stages(self):
         """

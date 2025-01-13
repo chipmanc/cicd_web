@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from api.models import Account, Project
 
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     token_class = RefreshToken
 
@@ -16,6 +17,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         self.fields["account"] = serializers.CharField(required=False)
 
     def validate(self, attrs):
+        print(attrs)
         data = super().validate(attrs)
         refresh = self.get_token(self.user)
         account_name = attrs.get("account", False)
@@ -42,4 +44,3 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if api_settings.UPDATE_LAST_LOGIN:
             update_last_login(None, self.user)
         return data
-

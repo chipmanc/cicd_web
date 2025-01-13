@@ -2,5 +2,5 @@ from celery import shared_task
 
 
 @shared_task()
-def put_on_queue(data, env):
+def put_on_queue(data, resources, env):
     pass

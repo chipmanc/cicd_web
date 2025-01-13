@@ -137,14 +137,19 @@ class Artifact(models.Model):
 
 class StageAttachment(models.Model):
     name = models.ForeignKey(Stage, on_delete=models.CASCADE)
-    resources = models.ManyToManyField(Git, blank=True)
+    # resources = models.ManyToManyField(Git, blank=True)
     on_success = models.ForeignKey(Stage, null=True, blank=True, on_delete=models.SET_NULL, related_name='on_success')
     on_fail = models.ForeignKey(Stage, null=True, blank=True, on_delete=models.SET_NULL, related_name='on_fail', )
     pipeline = models.ForeignKey(Pipeline, related_name='stages', on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to={'app_label': 'api'},
-                                     blank=True, null=True)
-    object_id = models.PositiveIntegerField(null=True, blank=True)
-    trigger = GenericForeignKey("content_type", "object_id")
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to={'app_label': 'api'},
+    #                                  blank=True, null=True)
+    # object_id = models.PositiveIntegerField(null=True, blank=True)
+    # trigger = GenericForeignKey("content_type", "object_id")
+
+
+class Resource(models.Model):
+    name = models.CharField(max_length=255)
+    stage = models.ForeignKey(StageAttachment, on_delete=models.CASCADE, related_name='resources')
 
 
 # API

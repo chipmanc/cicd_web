@@ -70,7 +70,7 @@ class PipelineViewSet(GetQuerySet, viewsets.ModelViewSet):
         pipeline_env = pipeline['environment'].value
         for environment in stage['environments']:
             env = utils.get_env(pipeline_env, environment)
-            task = put_on_queue.delay(stage, env)
+            task = put_on_queue.delay(stage['name'], stage['resources'], env)
             task_list.append(task.task_id)
         return Response(task_list)
 
