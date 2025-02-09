@@ -54,7 +54,7 @@ class EnvironmentViewSet(GetQuerySet, viewsets.ModelViewSet):
 class PipelineViewSet(GetQuerySet, viewsets.ModelViewSet):
     queryset = models.Pipeline.objects.all()
     serializer_class = serializers.PipelineSerializer
-    permission_classes = (permissions.DjangoObjectPermissions,)
+    permission_classes = (permissions.AllowAny,)
     lookup_field = 'name'
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])

@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from allauth.account.models import EmailAddress
 
 from .utils import add_project_perms, initialize_account
 
@@ -167,3 +168,9 @@ def user_creation(instance, created, **kwargs):
         project = Project.objects.create(name='default', account=account)
         initialize_account(instance, account)
         add_project_perms(instance, project)
+
+def jwt_auth_rule(user):
+    email = EmailAddress.objects.get(email=user.email)
+    return email.verified and user.is_active
+
+

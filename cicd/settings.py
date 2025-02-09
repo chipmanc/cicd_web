@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,12 +32,22 @@ APPEND_SLASH = True
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
+CORS_ORIGIN_ALLOW_ALL = True
 
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'curlicommand.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'curlicommand.com', '192.168.1.13']
 
 INTERNAL_IPS = ['127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
+CORS_ORIGIN_WHITELIST = ['http://localhost:5173']
 
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -52,20 +63,23 @@ INSTALLED_APPS = [
     'guardian',
     'allauth',
     'allauth.account',
+    'allauth.headless',
+    # 'allauth.socialaccount',
     'encrypted_model_fields',
     'drf_spectacular',
     'django_reverse_admin',
     'debug_toolbar',
+    'corsheaders',
     'rest_framework_simplejwt',
     'django_celery_beat',
     'scheduler',
     'channels'
 ]
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -74,6 +88,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
+
 
 ROOT_URLCONF = 'cicd.urls'
 
@@ -118,8 +133,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',
+                           'guardian.backends.ObjectPermissionBackend',
                            'allauth.account.auth_backends.AuthenticationBackend',
-                           'guardian.backends.ObjectPermissionBackend')
+                           )
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -178,13 +194,15 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': True,
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 LOGIN_REDIRECT_URL = '/api/schema/swagger-ui/'
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=600),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "TOKEN_OBTAIN_SERIALIZER": "cicd.serializers.CustomTokenObtainPairSerializer",
+    "USER_AUTHENTICATION_RULE": "api.models.jwt_auth_rule",
+    "UPDATE_LAST_LOGIN": True
 }
 
 ASGI_APPLICATION = "cicd.asgi.application"
@@ -197,3 +215,29 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# Auth settings
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_SIGNUP_FORM_HONEYPOT_FIELD = 'phone_number'
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "http://localhost:5173/verify-email/{key}",
+    "account_reset_password": "/accounts/password/reset",
+    "account_reset_password_from_key": "/accounts/password/reset/key/{key}",
+    "account_signup": "http://localhost:5173/signup",
+}
+HEADLESS_ONLY = True
+
+
+# Email settings
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'account@curlicommand.com'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+SEND_GRID_API_KEY = os.environ.get('SEND_GRID_API_KEY')

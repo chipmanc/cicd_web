@@ -2,7 +2,7 @@ from django.db.models.fields.related_descriptors import *
 from rest_framework import viewsets, serializers
 
 import api.serializers
-from api import models, utils
+from api import utils
 
 
 class GetQuerySet(viewsets.ModelViewSet):
@@ -110,8 +110,9 @@ class NestedMixin(serializers.ModelSerializer):
                     nested_field.update(sub_instance, nested_data)
         for nest in relations['ForwardManyToMany']:
             nested_cls = getattr(nest[1], '__class__')
-            nested_field, _ = nested_cls.objects.get(name=nest[1], project=project)
+            nested_field = nested_cls.objects.get(name=nest[1], project=project)
             setattr(instance, nest[0], nest[1])
+            instance.save()
         for nest in relations['ManyToMany']:
             project = getattr(instance, self.exclude[0]).project
             field, instances = nest

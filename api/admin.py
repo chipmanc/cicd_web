@@ -14,6 +14,11 @@ class ProjectAdmin(GuardedModelAdmin):
     list_display = ['name', 'account']
 
 
+@admin.register(models.EnvVar)
+class EnvVarAdmin(GuardedModelAdmin):
+    model = models.EnvVar
+
+
 class EnvVar(admin.TabularInline):
     model = models.EnvVar
 

@@ -3,7 +3,7 @@ import logging
 
 from rest_framework import serializers
 
-from api import mixins, models
+from api import mixins, models, utils
 
 logger = logging.getLogger()
 
@@ -12,8 +12,8 @@ logger = logging.getLogger()
 class SlugFieldByProject(serializers.SlugRelatedField):
     def get_queryset(self):
         query_set = super().get_queryset()
-        # acct, project = utils.get_project_account_from_token(self.context.get('request'))
-        project = models.Project.objects.filter(account='test1', name='default').first()
+        acct, project = utils.get_project_account_from_token(self.context.get('request'))
+        # project = models.Project.objects.filter(account='test1', name='default').first()
         return query_set.filter(project=project)
 
 

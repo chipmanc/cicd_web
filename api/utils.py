@@ -47,6 +47,10 @@ def add_project_perms(user, obj):
             assign_perm('api.delete_pipeline', g)
             assign_perm('api.delete_stage', g)
             assign_perm('api.add_trigger', g)
+            assign_perm('api.add_trigger', g)
+            assign_perm('api.change_environment', g)
+            assign_perm('api.change_stage', g)
+            assign_perm('api.change_pipeline', g)
         else:
             assign_perm('run_pipeline', g, obj)
 

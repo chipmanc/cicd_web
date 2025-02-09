@@ -24,10 +24,11 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from django.contrib import admin
 from django.urls import include, path
 
-import api
 
 urlpatterns = [path('admin/', admin.site.urls),
                path('accounts/', include('allauth.urls')),
+               path('_allauth/', include('allauth.headless.urls')),
+
                # path('webhook/', include('scm.urls', 'scm')),
                path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
                path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
