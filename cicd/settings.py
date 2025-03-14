@@ -224,6 +224,7 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_SIGNUP_FORM_HONEYPOT_FIELD = 'phone_number'
+ACCOUNT_EMAIL_SUBJECT_PREFIX = 'curlicommand.com'
 HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": "http://localhost:5173/verify-email/{key}",
     "account_reset_password": "/accounts/password/reset",
@@ -239,5 +240,8 @@ EMAIL_HOST_USER = 'apikey'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'account@curlicommand.com'
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-SEND_GRID_API_KEY = os.environ.get('SEND_GRID_API_KEY')
+EMAIL_HOST_PASSWORD = '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'
+SEND_GRID_API_KEY = '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'
+
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+# SEND_GRID_API_KEY = os.environ.get('SEND_GRID_API_KEY')

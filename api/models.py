@@ -172,5 +172,3 @@ def user_creation(instance, created, **kwargs):
 def jwt_auth_rule(user):
     email = EmailAddress.objects.get(email=user.email)
     return email.verified and user.is_active
-
-
